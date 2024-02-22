@@ -6,3 +6,5 @@ Jacob Levinson
 Laura Gonzalez
 
 Mi nombre es Joseph
+
+William Escobar
