@@ -2,3 +2,5 @@
 ECE 180D Project Repository
 
 Jacob Levinson
+
+Laura Gonzalez
