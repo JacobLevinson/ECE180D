@@ -26,8 +26,12 @@ from pygame.locals import (
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 
+# Create custom events for adding a new enemy and cloud
+SLAP_1 = pygame.USEREVENT + 1
+SLAP_2 = pygame.USEREVENT + 2
+VOICE = pygame.USEREVENT + 3
 
-slap_state = 0
+
 
 
 def on_connect(client, userdata, flags, rc):
@@ -83,10 +87,6 @@ clock = pygame.time.Clock()
 # The size is determined by the constant SCREEN_WIDTH and SCREEN_HEIGHT
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
-# Create custom events for adding a new enemy and cloud
-SLAP_1 = pygame.USEREVENT + 1
-SLAP_2 = pygame.USEREVENT + 2
-VOICE = pygame.USEREVENT + 3
 
 
 # Load and play our background music
