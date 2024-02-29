@@ -75,70 +75,70 @@ def main():
     client.loop_start()
 
     # Setup for sounds, defaults are good
-pygame.mixer.init()
+    pygame.mixer.init()
 
-# Initialize pygame
-pygame.init()
+    # Initialize pygame
+    pygame.init()
 
-# Setup the clock for a decent framerate
-clock = pygame.time.Clock()
+    # Setup the clock for a decent framerate
+    clock = pygame.time.Clock()
 
-# Create the screen object
-# The size is determined by the constant SCREEN_WIDTH and SCREEN_HEIGHT
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    # Create the screen object
+    # The size is determined by the constant SCREEN_WIDTH and SCREEN_HEIGHT
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 
 
-# Load and play our background music
-# pygame.mixer.music.load("Apoxode_-_Electric_1.mp3")
-# pygame.mixer.music.play(loops=-1)
+    # Load and play our background music
+    # pygame.mixer.music.load("Apoxode_-_Electric_1.mp3")
+    # pygame.mixer.music.play(loops=-1)
 
-# Load all our sound files
-# Sound sources: Jon Fincher
-# move_up_sound = pygame.mixer.Sound("Rising_putter.ogg")
-# move_down_sound = pygame.mixer.Sound("Falling_putter.ogg")
-# collision_sound = pygame.mixer.Sound("Collision.ogg")
+    # Load all our sound files
+    # Sound sources: Jon Fincher
+    # move_up_sound = pygame.mixer.Sound("Rising_putter.ogg")
+    # move_down_sound = pygame.mixer.Sound("Falling_putter.ogg")
+    # collision_sound = pygame.mixer.Sound("Collision.ogg")
 
-# Set the base volume for all sounds
-# move_up_sound.set_volume(0.5)
-# move_down_sound.set_volume(0.5)
-# collision_sound.set_volume(0.5)
+    # Set the base volume for all sounds
+    # move_up_sound.set_volume(0.5)
+    # move_down_sound.set_volume(0.5)
+    # collision_sound.set_volume(0.5)
 
-# Variable to keep our main loop running
-running = True
+    # Variable to keep our main loop running
+    running = True
 
-# Our main loop
-while running:
-    # Look at every event in the queue
-    for event in pygame.event.get():
-        # Did the user hit a key?
-        if event.type == KEYDOWN:
-            # Was it the Escape key? If so, stop the loop
-            if event.key == K_ESCAPE:
+    # Our main loop
+    while running:
+        # Look at every event in the queue
+        for event in pygame.event.get():
+            # Did the user hit a key?
+            if event.type == KEYDOWN:
+                # Was it the Escape key? If so, stop the loop
+                if event.key == K_ESCAPE:
+                    running = False
+
+            # Did the user click the window close button? If so, stop the loop
+            elif event.type == QUIT:
                 running = False
 
-        # Did the user click the window close button? If so, stop the loop
-        elif event.type == QUIT:
-            running = False
+            elif event.type == SLAP_1:
+                print("SLAP 1 detected")
 
-        elif event.type == SLAP_1:
-            print("SLAP 1 detected")
+            elif event.type == SLAP_2:
+                print("SLAP 2 detected")
 
-        elif event.type == SLAP_2:
-            print("SLAP 2 detected")
+            elif event.type == VOICE:
+                print(f"Voice detected: {event.phrase}")
 
-        elif event.type == VOICE:
-            print(f"Voice detected: {event.phrase}")
+        # Fill the screen with sky blue
+        screen.fill((135, 206, 250))
+        pygame.display.flip()
+        # Ensure we maintain a 30 frames per second rate
+        clock.tick(30)
 
-    # Fill the screen with sky blue
-    screen.fill((135, 206, 250))
-    pygame.display.flip()
-    # Ensure we maintain a 30 frames per second rate
-    clock.tick(30)
-
-# At this point, we're done, so we can stop and quit the mixer
-pygame.mixer.music.stop()
-pygame.mixer.quit()
+    # At this point, we're done, so we can stop and quit the mixer
+    pygame.mixer.music.stop()
+    pygame.mixer.quit()
 
 
 if __name__ == "__main__":
