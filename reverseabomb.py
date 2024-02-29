@@ -43,11 +43,14 @@ def on_message(client, userdata, msg):
     message_content = str(msg.payload.decode(
         "utf-8")).upper()  # Assuming payload is text
     match message_content:
-        case "SLAP":
-            print(f"SLAP received from wristband {
-                  wristband_id} {random.randint(1, 10)}")
-            global slap_state
-            slap_state = 1
+        case "SLAP1":
+            print(f"SLAP received from wristband 1")
+            custom_event = pygame.event.Event(SLAP_1)
+            pygame.event.post(custom_event)
+        case "SLAP2":
+            print(f"SLAP received from wristband 2")
+            custom_event = pygame.event.Event(SLAP_2)
+            pygame.event.post(custom_event)
         case "JUMP":
             print(f"JUMP action requested by wristband {wristband_id}")
             # Additional code for JUMP action can go here
@@ -67,7 +70,6 @@ def main():
     client.connect_async('mqtt.eclipseprojects.io')
     client.loop_start()
 
-
     # Setup for sounds, defaults are good
 pygame.mixer.init()
 
@@ -82,36 +84,25 @@ clock = pygame.time.Clock()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 # Create custom events for adding a new enemy and cloud
-ADDENEMY = pygame.USEREVENT + 1
-pygame.time.set_timer(ADDENEMY, 250)
-ADDCLOUD = pygame.USEREVENT + 2
-pygame.time.set_timer(ADDCLOUD, 1000)
+SLAP_1 = pygame.USEREVENT + 1
+SLAP_2 = pygame.USEREVENT + 2
+VOICE = pygame.USEREVENT + 3
 
-
-# Create groups to hold enemy sprites, cloud sprites, and all sprites
-# - enemies is used for collision detection and position updates
-# - clouds is used for position updates
-# - all_sprites isused for rendering
-enemies = pygame.sprite.Group()
-clouds = pygame.sprite.Group()
-all_sprites = pygame.sprite.Group()
 
 # Load and play our background music
-# Sound source: http://ccmixter.org/files/Apoxode/59262
-# License: https://creativecommons.org/licenses/by/3.0/
-pygame.mixer.music.load("Apoxode_-_Electric_1.mp3")
-pygame.mixer.music.play(loops=-1)
+# pygame.mixer.music.load("Apoxode_-_Electric_1.mp3")
+# pygame.mixer.music.play(loops=-1)
 
 # Load all our sound files
 # Sound sources: Jon Fincher
-move_up_sound = pygame.mixer.Sound("Rising_putter.ogg")
-move_down_sound = pygame.mixer.Sound("Falling_putter.ogg")
-collision_sound = pygame.mixer.Sound("Collision.ogg")
+# move_up_sound = pygame.mixer.Sound("Rising_putter.ogg")
+# move_down_sound = pygame.mixer.Sound("Falling_putter.ogg")
+# collision_sound = pygame.mixer.Sound("Collision.ogg")
 
 # Set the base volume for all sounds
-move_up_sound.set_volume(0.5)
-move_down_sound.set_volume(0.5)
-collision_sound.set_volume(0.5)
+# move_up_sound.set_volume(0.5)
+# move_down_sound.set_volume(0.5)
+# collision_sound.set_volume(0.5)
 
 # Variable to keep our main loop running
 running = True
@@ -130,9 +121,18 @@ while running:
         elif event.type == QUIT:
             running = False
 
+        elif event.type == SLAP_1:
+            print("SLAP 1 detected")
+
+        elif event.type == SLAP_2:
+            print("SLAP 2 detected")
+
+        elif event.type == VOICE:
+            print(f"Voice detected: {event.phrase}")
+
     # Fill the screen with sky blue
     screen.fill((135, 206, 250))
-
+    pygame.display.flip()
     # Ensure we maintain a 30 frames per second rate
     clock.tick(30)
 
