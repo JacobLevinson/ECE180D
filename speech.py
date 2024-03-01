@@ -79,7 +79,7 @@ def detect_speech(speech_text):
 
 if __name__ == "__main__":
 
-    speech_words = ["freeze", "start", "stop", "die", "reverse", "Breeze"]
+    speech_words = ["freeze", "start", "stop", "die", "reverse", "Breeze","dive","fairies", "dines","brothers", "rivers", "lighting"]
 
     # Create recognizer and mic instances
     recognizer = sr.Recognizer()
@@ -110,3 +110,7 @@ print("Activated Power-Up:", power_up)
 
 # Now 'power_up' variable should hold the value 'fire'
 #print("Activated Power-Up:", power_up)
+
+
+# right before you send it, change the phrase into uppercase. so all the case does is it takes in the player's phrase and then
+# we'll deal with it later.
