@@ -114,14 +114,17 @@ void callback(char* topic, byte* payload, unsigned int length) {
   // Convert the payload to an integer
   int newPosition = atoi((char*)payload);
 
+  for (int i =0; i< NUM_LEDS; i++)//turn off leds before updating 
+  [
+    leds[i] = CRGB::Black;
+  ]
   // Set position of the led in the array to what was given by the payload 
   leds[newPosition] = CRGB::Red;
 
   // Show the leds (only one of which is set to white, from above)
   FastLED.show();
 
-  // Wait a little bit
-  delay(100);
+
 }
 //*************************************************************************************
 
