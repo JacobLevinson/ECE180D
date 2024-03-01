@@ -2,12 +2,13 @@
 #include <FastLED.h>
 #include <ArduinoJson.h>
 #include <PubSubClient.h>//for MQTT clients library 
-#include <WiFiNINA.h>//for wifi library 
+#include <WiFiNINA.h>//for wifi library
+#include <Arduino_JSON.h>
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //create our variable to hold data 
-static char payload[256]; //payload is our message we send, limit to 256 characters
-//StaticJsonDocument<256> doc; //creating a JSON document which will hold data messages
+//static char payload[256]; //payload is our message we send, limit to 256 characters
+StaticJsonDocument<256> doc; //creating a JSON document which will hold data messages
 
 #define TOKEN ""
 #define DEVICEID ""
@@ -111,13 +112,20 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
   Serial.println();
 
-  // Convert the payload to an integer
-  int newPosition = atoi((char*)payload);
+  // // Convert the payload to an integer if not JSON
+  // int newPosition = atoi((char*)payload);
+
+  // Parse the JSON payload
+  deserializeJson(doc, payload);
+
+  // Extract information from the JSON
+  int newPosition = doc["position"];
+
 
   for (int i =0; i< NUM_LEDS; i++)//turn off leds before updating 
-  [
+  {
     leds[i] = CRGB::Black;
-  ]
+  }
   // Set position of the led in the array to what was given by the payload 
   leds[newPosition] = CRGB::Red;
 
