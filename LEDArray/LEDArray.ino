@@ -22,6 +22,17 @@ const char subscribeTopic[] = "ece180d/team3/reverseabomb/ledcontroller"; //the 
 WiFiClient wifiClient;
 PubSubClient mqtt(wifiClient);
 
+// How many leds are in the strip?
+#define NUM_LEDS 90 // assuming that we have 5 foot strips (1.5m) where there are 60pixels/meter on strips 
+
+// For led chips like WS2812, which have a data line, ground, and power, you just
+// need to define DATA_PIN.  
+#define DATA_PIN 3// when working with multiple led arrays, we will make this an array of pins
+
+// This is an array of leds.  One item for each led in your strip. So when you have multiple LED
+// strips you will need multiple arrays or multi-dimensional arrays
+CRGB leds[NUM_LEDS];
+
 //*************************************************************************************
 //                          void setup_wifi() 
 // Is a function which connects to the wifi network specified above. Function will 
@@ -104,35 +115,15 @@ void callback(char* topic, byte* payload, unsigned int length) {
   int newPosition = atoi((char*)payload);
 
   // Set position of the led in the array to what was given by the payload 
-  leds[whiteLed] = CRGB::Red;
+  leds[newPosition] = CRGB::Red;
 
   // Show the leds (only one of which is set to white, from above)
   FastLED.show();
 
   // Wait a little bit
   delay(100);
-
-  // Turn our current led back to black for the next loop around
-  leds[whiteLed] = CRGB::Black;
 }
-
 //*************************************************************************************
-
-//
-// Move a white dot along the strip of leds. This program simply shows how to configure the leds,
-// and then how to turn a single pixel white and then off, moving down the line of pixels.
-// 
-
-// How many leds are in the strip?
-#define NUM_LEDS 90 // assuming that we have 5 foot strips (1.5m) where there are 60pixels/meter on strips 
-
-// For led chips like WS2812, which have a data line, ground, and power, you just
-// need to define DATA_PIN.  
-#define DATA_PIN 3// when working with multiple led arrays, we will make this an array of pins
-
-// This is an array of leds.  One item for each led in your strip. So when you have multiple LED
-// strips you will need multiple arrays or multi-dimensional arrays
-CRGB leds[NUM_LEDS];
 
 // This function sets up the ledsand tells the controller about them
 void setup() {
@@ -161,5 +152,4 @@ void loop() {
     //begin client loop with MQTT
     mqtt.loop();
 
-   }
 }
