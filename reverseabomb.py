@@ -153,8 +153,7 @@ def on_message(client, userdata, msg):
             print(f"RUN action detected from wristband {wristband_id}")
             # Additional code for RUN action can go here
         case "SPEECH":
-            custom_event = pygame.event.Event(VOICE)
-            pygame.event.post(custom_event)
+            custom_event = pygame.event.Event(VOICE, phrase = recognize_speech_from_mic())
         case _:
             print(f"Unhandled message: {
                   message_content} from wristband {wristband_id}")
@@ -220,12 +219,7 @@ def main():
                 print("SLAP 2 detected")
 
             elif event.type == VOICE:
-                if (event.phrase == "FREEZE"):
-                    pass
-                elif (event.phrase == "REVERSE"):
-                    pass
-
-
+                print("Voice detected")
 #            if spoken_text:
 #                if "freeze" in spoken_text:
                     # Trigger attack action in the game

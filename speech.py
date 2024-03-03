@@ -114,3 +114,5 @@ print("Activated Power-Up:", power_up)
 
 # right before you send it, change the phrase into uppercase. so all the case does is it takes in the player's phrase and then
 # we'll deal with it later.
+
+# post the event in my function, # make a function that triggers an event, then the game logic will handle that
