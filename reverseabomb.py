@@ -42,6 +42,10 @@ def listen_and_convert():
         except sr.RequestError as e: # if not understanding
             print("Could not request results; {0}".format(e))
 
+        # if(trigger_word in text_upper):
+        #     custom_event = pygame.event.Event(VOICE)
+        #     pygame.event.post(custom_event, phrase = text_upper)
+
 # Import pygame.locals for easier access to key coordinates
 # Updated to conform to flake8 and black standards
 # from pygame.locals import *
