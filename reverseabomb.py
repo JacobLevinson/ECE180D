@@ -131,7 +131,7 @@ def main():
     client.on_message = on_message  
     client.connect_async('mqtt.eclipseprojects.io')
     client.loop_start()
-
+    gameState = GameState()
     # Setup for sounds, defaults are good
     pygame.mixer.init()
     # Initialize pygame
@@ -185,6 +185,13 @@ def main():
 
             elif event.type == VOICE:
                 print("Voice detected")
+                if(event.phrase == "STOP"):
+                    print("STOP detected")
+                    running = False
+                elif(event.phrase == "FREEZE"):
+                    print("FREEZE detected")
+                    if(gameState.powerup_state == "NONE"):
+                        gameState.powerup_state = "FREEZE"
 #            if spoken_text:
 #                if "freeze" in spoken_text:
                     # Trigger attack action in the game
