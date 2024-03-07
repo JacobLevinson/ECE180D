@@ -116,8 +116,6 @@ def on_message(client, userdata, msg):
         case "RUN":
             print(f"RUN action detected from wristband {wristband_id}")
             # Additional code for RUN action can go here
-        case "SPEECH":
-            custom_event = pygame.event.Event(VOICE, phrase = recognize_speech_from_mic().upper())
         case _:
             print(f"Unhandled message: {
                   message_content} from wristband {wristband_id}")
@@ -126,8 +124,7 @@ def on_message(client, userdata, msg):
 def main():
     client = mqtt.Client()
     client.on_connect = on_connect
-    client.on_message = on_message
-
+    client.on_message = on_message  
     client.connect_async('mqtt.eclipseprojects.io')
     client.loop_start()
 
@@ -193,11 +190,14 @@ def main():
                     # Example: player.defend()
 #                    print(f"Voice detected: {event.phrase}")
 
+
+        # Send LED state to the LED strips  
+                    
         # Fill the screen with sky blue
         screen.fill((135, 206, 250))
         pygame.display.flip()
         # Ensure we maintain a 30 frames per second rate
-        clock.tick(30)
+        clock.tick(10)
 
     # At this point, we're done, so we can stop and quit the mixer
     pygame.mixer.music.stop()
