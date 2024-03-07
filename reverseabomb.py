@@ -62,10 +62,32 @@ def recognize_speech_from_mic(recognizer, microphone):
 
     return response
 
+# Convert AudioData to text
+def audio_to_text(audio_data):
+    try:
+        text = recognizer.recognize_google(audio_data)
+        return text
+    except sr.UnknownValueError:
+        return "Sorry, could not understand audio."
+    except sr.RequestError as e:
+        return "Could not request results; {0}".format(e)
+    
+# Loop indefinitely to continuously listen for speech input
+while True:
+    with microphone as source:
+        audio_data = recognizer.listen(source)
+        text = audio_to_text(audio_data)
+        text_upper = text.upper()
+        print(text_upper)
 
-# Create recognizer and mic instances
-recognizer = sr.Recognizer()
-microphone = sr.Microphone()
+    # Recognize speech from the audio
+    try:
+        speech_text = recognizer.recognize_google(audio_data)
+        print("You said:", speech_text)
+    except sr.UnknownValueError:
+        print("Could not understand audio")
+    except sr.RequestError as e:
+        print("Could not request results; {0}".format(e))
 
 # Import pygame.locals for easier access to key coordinates
 # Updated to conform to flake8 and black standards
@@ -152,7 +174,7 @@ def on_message(client, userdata, msg):
             print(f"RUN action detected from wristband {wristband_id}")
             # Additional code for RUN action can go here
         case "SPEECH":
-            custom_event = pygame.event.Event(VOICE, phrase = recognize_speech_from_mic())
+            custom_event = pygame.event.Event(VOICE, phrase = recognize_speech_from_mic().upper())
         case _:
             print(f"Unhandled message: {
                   message_content} from wristband {wristband_id}")

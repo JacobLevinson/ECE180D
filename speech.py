@@ -79,7 +79,9 @@ def detect_speech(speech_text):
 
 if __name__ == "__main__":
 
-    speech_words = ["freeze", "start", "stop", "die", "reverse", "Breeze","dive","fairies", "dines","brothers", "rivers", "lighting"]
+    speech_words = ["freeze", "start", "stop", "die", "reverse", "Breeze","dive","fairies", "dines","brothers", "rivers", "lighting", "aries",
+                    "fries", "jewelries","jewelry", "please", "reese", "trees", "three",
+                    ""]
 
     # Create recognizer and mic instances
     recognizer = sr.Recognizer()
