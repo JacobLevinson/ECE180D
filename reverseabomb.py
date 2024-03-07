@@ -1,3 +1,13 @@
+from pygame.locals import (
+    RLEACCEL,
+    K_UP,
+    K_DOWN,
+    K_LEFT,
+    K_RIGHT,
+    K_ESCAPE,
+    KEYDOWN,
+    QUIT,
+)
 import paho.mqtt.client as mqtt
 import json
 import math
@@ -14,6 +24,7 @@ import random
 # Create recognizer and mic instances
 recognizer = sr.Recognizer()
 microphone = sr.Microphone()
+
 
 def recognize_speech_from_mic(recognizer, microphone):
     """Transcribe speech from recorded from `microphone`.
@@ -33,7 +44,7 @@ def recognize_speech_from_mic(recognizer, microphone):
 
     if not isinstance(microphone, sr.Microphone):
         raise TypeError("`microphone` must be `Microphone` instance")
-    
+
     # adjust the recognizer sensitivity to ambient noise and record audio
     # from the microphone
     with microphone as source:
@@ -70,16 +81,6 @@ microphone = sr.Microphone()
 # Import pygame.locals for easier access to key coordinates
 # Updated to conform to flake8 and black standards
 # from pygame.locals import *
-from pygame.locals import (
-    RLEACCEL,
-    K_UP,
-    K_DOWN,
-    K_LEFT,
-    K_RIGHT,
-    K_ESCAPE,
-    KEYDOWN,
-    QUIT,
-)
 
 
 # Define constants for the screen width and height
@@ -227,7 +228,6 @@ def main():
                     # Trigger defend action in the game
                     # Example: player.defend()
 #                    print(f"Voice detected: {event.phrase}")
-
 
         # Fill the screen with sky blue
         screen.fill((135, 206, 250))
