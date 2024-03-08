@@ -21,34 +21,6 @@ import pygame
 import random
 
 
-# Create recognizer and mic instances
-recognizer = sr.Recognizer()
-microphone = sr.Microphone()
-
-# speech function to be called
-def listen_and_convert():
-    # Loop indefinitely to continuously listen for speech input
-    while True:
-        with microphone as source:
-            audio_data = recognizer.listen(source)
-
-        # Convert AudioData to text
-        try:
-            text = recognizer.recognize_google(audio_data) # converting AudioData to text
-            text_upper = text.upper() # converting the text into all uppercase string
-            print("Recognized text:", text_upper)
-        except sr.UnknownValueError:  # if not understanding
-            print("Sorry, could not understand audio.")
-        except sr.RequestError as e: # if not understanding
-            print("Could not request results; {0}".format(e))
-
-        # if(trigger_word in text_upper):
-        #     custom_event = pygame.event.Event(VOICE)
-        #     pygame.event.post(custom_event, phrase = text_upper)
-
-# Import pygame.locals for easier access to key coordinates
-# Updated to conform to flake8 and black standards
-# from pygame.locals import *
 
 
 # Define constants for the screen width and height
@@ -57,6 +29,7 @@ SCREEN_HEIGHT = 720
 
 # Physical Paremeters
 LED_STRIP_LENGTH = 90  # Number of LEDs in each strip
+LED_STRIP_COUNT = 6  # Number of LED strips
 TOWARDS_PLAYER1 = 1
 TOWARDS_PLAYER2 = -1
 
@@ -64,6 +37,36 @@ TOWARDS_PLAYER2 = -1
 SLAP_1 = pygame.USEREVENT + 1
 SLAP_2 = pygame.USEREVENT + 2
 VOICE = pygame.USEREVENT + 3
+
+
+# Create recognizer and mic instances
+recognizer = sr.Recognizer()
+microphone = sr.Microphone()
+
+# speech function to be called
+
+
+def listen_and_convert():
+    # Loop indefinitely to continuously listen for speech input
+    while True:
+        with microphone as source:
+            audio_data = recognizer.listen(source)
+
+        # Convert AudioData to text
+        try:
+            text = recognizer.recognize_google(
+                audio_data)  # converting AudioData to text
+            text_upper = text.upper()  # converting the text into all uppercase string
+            print("Recognized text:", text_upper)
+        except sr.UnknownValueError:  # if not understanding
+            print("Sorry, could not understand audio.")
+        except sr.RequestError as e:  # if not understanding
+            print("Could not request results; {0}".format(e))
+
+        # if(trigger_word in text_upper):
+        #     custom_event = pygame.event.Event(VOICE)
+        #     pygame.event.post(custom_event, phrase = text_upper)
+
 
 
 class GameState:
@@ -91,6 +94,28 @@ class GameState:
            or ((self.bomb_directions[bomb_id] == TOWARDS_PLAYER2) and player_id == 2)):
             # Reverse the direction of the bomb
             self.bomb_directions[bomb_id] = -1 * self.bomb_directions[bomb_id]
+    def updatePoisitions(self):
+        for i in range(0, LED_STRIP_COUNT):
+            self.bomb_positions[i] = self.bomb_positions[i] + self.bomb_directions[i]
+            if(self.bomb_positions[i] == 0 or self.bomb_positions[i] == LED_STRIP_LENGTH):
+                # Explode!
+                print(f"Bomb {i} exploded!")
+                # Reset bomb position
+                self.bomb_positions[i] = LED_STRIP_LENGTH/2
+
+
+class LEDState:
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super(LEDState, cls).__new__(
+                cls, *args, **kwargs)
+            # Initialize your singleton instance here
+            cls._instance.colors =  [
+                ["black" for _ in range(LED_STRIP_LENGTH)] for _ in range(LED_STRIP_COUNT)]
+        return cls._instance
+
 
 
 def on_connect(client, userdata, flags, rc):
@@ -200,7 +225,8 @@ def main():
                     # Trigger defend action in the game
                     # Example: player.defend()
 #                    print(f"Voice detected: {event.phrase}")
-
+        #MOVE THE BOMBS
+        gameState.updatePoisitions()                        
 
         # Send LED state to the LED strips  
                     
