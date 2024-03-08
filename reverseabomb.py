@@ -21,88 +21,6 @@ import pygame
 import random
 
 
-# Create recognizer and mic instances
-recognizer = sr.Recognizer()
-microphone = sr.Microphone()
-
-
-def recognize_speech_from_mic(recognizer, microphone):
-    """Transcribe speech from recorded from `microphone`.
-
-    Returns a dictionary with three keys:
-    "success": a boolean indicating whether or not the API request was
-               successful
-    "error":   `None` if no error occured, otherwise a string containing
-               an error message if the API could not be reached or
-               speech was unrecognizable
-    "transcription": `None` if speech could not be transcribed,
-               otherwise a string containing the transcribed text
-    """
-    # check that recognizer and microphone arguments are appropriate type
-    if not isinstance(recognizer, sr.Recognizer):
-        raise TypeError("`recognizer` must be `Recognizer` instance")
-
-    if not isinstance(microphone, sr.Microphone):
-        raise TypeError("`microphone` must be `Microphone` instance")
-
-    # adjust the recognizer sensitivity to ambient noise and record audio
-    # from the microphone
-    with microphone as source:
-        recognizer.adjust_for_ambient_noise(source)
-        audio = recognizer.listen(source)
-
-    # set up the response object
-    response = {
-        "success": True,
-        "error": None,
-        "transcription": None
-    }
-
-    # try recognizing the speech in the recording
-    # if a RequestError or UnknownValueError exception is caught,
-    #     update the response object accordingly
-    try:
-        response["transcription"] = recognizer.recognize_google(audio)
-    except sr.RequestError:
-        # API was unreachable or unresponsive
-        response["success"] = False
-        response["error"] = "API unavailable"
-    except sr.UnknownValueError:
-        # speech was unintelligible
-        response["error"] = "Unable to recognize speech"
-
-    return response
-
-# Convert AudioData to text
-def audio_to_text(audio_data):
-    try:
-        text = recognizer.recognize_google(audio_data)
-        return text
-    except sr.UnknownValueError:
-        return "Sorry, could not understand audio."
-    except sr.RequestError as e:
-        return "Could not request results; {0}".format(e)
-    
-# Loop indefinitely to continuously listen for speech input
-while True:
-    with microphone as source:
-        audio_data = recognizer.listen(source)
-        text = audio_to_text(audio_data)
-        text_upper = text.upper()
-        print(text_upper)
-
-    # Recognize speech from the audio
-    try:
-        speech_text = recognizer.recognize_google(audio_data)
-        print("You said:", speech_text)
-    except sr.UnknownValueError:
-        print("Could not understand audio")
-    except sr.RequestError as e:
-        print("Could not request results; {0}".format(e))
-
-# Import pygame.locals for easier access to key coordinates
-# Updated to conform to flake8 and black standards
-# from pygame.locals import *
 
 
 # Define constants for the screen width and height
@@ -111,6 +29,7 @@ SCREEN_HEIGHT = 720
 
 # Physical Paremeters
 LED_STRIP_LENGTH = 90  # Number of LEDs in each strip
+LED_STRIP_COUNT = 6  # Number of LED strips
 TOWARDS_PLAYER1 = 1
 TOWARDS_PLAYER2 = -1
 
@@ -118,6 +37,36 @@ TOWARDS_PLAYER2 = -1
 SLAP_1 = pygame.USEREVENT + 1
 SLAP_2 = pygame.USEREVENT + 2
 VOICE = pygame.USEREVENT + 3
+
+
+# Create recognizer and mic instances
+recognizer = sr.Recognizer()
+microphone = sr.Microphone()
+
+# speech function to be called
+
+
+def listen_and_convert():
+    # Loop indefinitely to continuously listen for speech input
+    while True:
+        with microphone as source:
+            audio_data = recognizer.listen(source)
+
+        # Convert AudioData to text
+        try:
+            text = recognizer.recognize_google(
+                audio_data)  # converting AudioData to text
+            text_upper = text.upper()  # converting the text into all uppercase string
+            print("Recognized text:", text_upper)
+        except sr.UnknownValueError:  # if not understanding
+            print("Sorry, could not understand audio.")
+        except sr.RequestError as e:  # if not understanding
+            print("Could not request results; {0}".format(e))
+
+        # if(trigger_word in text_upper):
+        #     custom_event = pygame.event.Event(VOICE)
+        #     pygame.event.post(custom_event, phrase = text_upper)
+
 
 
 class GameState:
@@ -145,6 +94,28 @@ class GameState:
            or ((self.bomb_directions[bomb_id] == TOWARDS_PLAYER2) and player_id == 2)):
             # Reverse the direction of the bomb
             self.bomb_directions[bomb_id] = -1 * self.bomb_directions[bomb_id]
+    def updatePoisitions(self):
+        for i in range(0, LED_STRIP_COUNT):
+            self.bomb_positions[i] = self.bomb_positions[i] + self.bomb_directions[i]
+            if(self.bomb_positions[i] == 0 or self.bomb_positions[i] == LED_STRIP_LENGTH):
+                # Explode!
+                print(f"Bomb {i} exploded!")
+                # Reset bomb position
+                self.bomb_positions[i] = LED_STRIP_LENGTH/2
+
+
+class LEDState:
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super(LEDState, cls).__new__(
+                cls, *args, **kwargs)
+            # Initialize your singleton instance here
+            cls._instance.colors =  [
+                ["black" for _ in range(LED_STRIP_LENGTH)] for _ in range(LED_STRIP_COUNT)]
+        return cls._instance
+
 
 
 def on_connect(client, userdata, flags, rc):
@@ -174,8 +145,6 @@ def on_message(client, userdata, msg):
         case "RUN":
             print(f"RUN action detected from wristband {wristband_id}")
             # Additional code for RUN action can go here
-        case "SPEECH":
-            custom_event = pygame.event.Event(VOICE, phrase = recognize_speech_from_mic().upper())
         case _:
             print(f"Unhandled message: {
                   message_content} from wristband {wristband_id}")
@@ -184,11 +153,11 @@ def on_message(client, userdata, msg):
 def main():
     client = mqtt.Client()
     client.on_connect = on_connect
-    client.on_message = on_message
-
+    client.on_message = on_message  
     client.connect_async('mqtt.eclipseprojects.io')
     client.loop_start()
-
+    gameState = GameState()
+    ledState = LEDState()
     # Setup for sounds, defaults are good
     pygame.mixer.init()
     # Initialize pygame
@@ -242,6 +211,13 @@ def main():
 
             elif event.type == VOICE:
                 print("Voice detected")
+                if(event.phrase == "STOP"):
+                    print("STOP detected")
+                    running = False
+                elif(event.phrase == "FREEZE"):
+                    print("FREEZE detected")
+                    if(gameState.powerup_state == "NONE"):
+                        gameState.powerup_state = "FREEZE"
 #            if spoken_text:
 #                if "freeze" in spoken_text:
                     # Trigger attack action in the game
@@ -250,12 +226,16 @@ def main():
                     # Trigger defend action in the game
                     # Example: player.defend()
 #                    print(f"Voice detected: {event.phrase}")
+        #MOVE THE BOMBS
+        gameState.updatePoisitions()                        
 
+        # Send LED state to the LED strips  
+                    
         # Fill the screen with sky blue
         screen.fill((135, 206, 250))
         pygame.display.flip()
         # Ensure we maintain a 30 frames per second rate
-        clock.tick(30)
+        clock.tick(10)
 
     # At this point, we're done, so we can stop and quit the mixer
     pygame.mixer.music.stop()

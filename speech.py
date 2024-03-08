@@ -81,7 +81,9 @@ if __name__ == "__main__":
 
     speech_words = ["freeze", "start", "stop", "die", "reverse", "Breeze","dive","fairies", "dines","brothers", "rivers", "lighting", "aries",
                     "fries", "jewelries","jewelry", "please", "reese", "trees", "three",
-                    ""]
+                    "praise", "price","brief","free","race",
+                    "starks","stardust",
+                    "bye"]
 
     # Create recognizer and mic instances
     recognizer = sr.Recognizer()
@@ -118,3 +120,77 @@ print("Activated Power-Up:", power_up)
 # we'll deal with it later.
 
 # post the event in my function, # make a function that triggers an event, then the game logic will handle that
+
+def recognize_speech_from_mic(recognizer, microphone):
+    """Transcribe speech from recorded from `microphone`.
+
+    Returns a dictionary with three keys:
+    "success": a boolean indicating whether or not the API request was
+               successful
+    "error":   `None` if no error occured, otherwise a string containing
+               an error message if the API could not be reached or
+               speech was unrecognizable
+    "transcription": `None` if speech could not be transcribed,
+               otherwise a string containing the transcribed text
+    """
+    # check that recognizer and microphone arguments are appropriate type
+    if not isinstance(recognizer, sr.Recognizer):
+        raise TypeError("`recognizer` must be `Recognizer` instance")
+
+    if not isinstance(microphone, sr.Microphone):
+        raise TypeError("`microphone` must be `Microphone` instance")
+
+    # adjust the recognizer sensitivity to ambient noise and record audio
+    # from the microphone
+    with microphone as source:
+        recognizer.adjust_for_ambient_noise(source)
+        audio = recognizer.listen(source)
+
+    # set up the response object
+    response = {
+        "success": True,
+        "error": None,
+        "transcription": None
+    }
+
+    # try recognizing the speech in the recording
+    # if a RequestError or UnknownValueError exception is caught,
+    #     update the response object accordingly
+    try:
+        response["transcription"] = recognizer.recognize_google(audio)
+    except sr.RequestError:
+        # API was unreachable or unresponsive
+        response["success"] = False
+        response["error"] = "API unavailable"
+    except sr.UnknownValueError:
+        # speech was unintelligible
+        response["error"] = "Unable to recognize speech"
+
+    return response
+
+# Convert AudioData to text
+def audio_to_text(audio_data):
+    try:
+        text = recognizer.recognize_google(audio_data)
+        return text
+    except sr.UnknownValueError:
+        return "Sorry, could not understand audio."
+    except sr.RequestError as e:
+        return "Could not request results; {0}".format(e)
+    
+# Loop indefinitely to continuously listen for speech input
+while True:
+    with microphone as source:
+        audio_data = recognizer.listen(source)
+        text = audio_to_text(audio_data)
+        text_upper = text.upper()
+        print(text_upper)
+
+    # Recognize speech from the audio
+    try:
+        speech_text = recognizer.recognize_google(audio_data)
+#        print("You said:", speech_text)
+#    except sr.UnknownValueError:
+#        print("Could not understand audio")
+#   except sr.RequestError as e:
+#        print("Could not request results; {0}".format(e))
