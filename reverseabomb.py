@@ -157,6 +157,7 @@ def main():
     client.connect_async('mqtt.eclipseprojects.io')
     client.loop_start()
     gameState = GameState()
+    ledState = LEDState()
     # Setup for sounds, defaults are good
     pygame.mixer.init()
     # Initialize pygame
