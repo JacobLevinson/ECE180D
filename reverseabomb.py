@@ -43,9 +43,7 @@ VOICE = pygame.USEREVENT + 3
 recognizer = sr.Recognizer()
 microphone = sr.Microphone()
 
-# speech function to be called
-
-
+# speech function to be called **************************************************************
 def listen_and_convert():
     # Loop indefinitely to continuously listen for speech input
     while True:
@@ -67,8 +65,56 @@ def listen_and_convert():
         #     custom_event = pygame.event.Event(VOICE)
         #     pygame.event.post(custom_event, phrase = text_upper)
 
+#This class is to manage the current positions of the leds. *********************************
+class LEDState:
+    _instance = None
 
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super(LEDState, cls).__new__(
+                cls, *args, **kwargs)
+        
+        # Initialize your singleton instance here
+            #Here we have an initialization of a 2D List, the first list is for the specific led strip 
+            #and the second list is for the index of the specific led in the strip
+            #initially, set all leds to off a.k.a "black"
+            cls._instance.colors = [
+                ["black" for _ in range(LED_STRIP_LENGTH)] for _ in range(LED_STRIP_COUNT)]
+        return cls._instance
+    
+    def send_LED_state(self, client, gameState, strip_length, strip_count):
+        # Create a dictionary to store LED states for each strip
+        led_state_dict = {}
 
+        # Set LEDs at bomb positions to a different color (e.g., "red")
+        for strip_index, pixel in enumerate(gameState.bomb_positions):
+            # Convert position to an integer (assuming it's a float)
+            pixel = int(pixel)
+            
+            # Ensure the position is within the LED strip length
+            pixel = max(0, min(pixel, strip_length - 1))
+            
+            # Set all LEDs to "black" in the stip
+            self._instance.colors[strip_index] = ["black" for _ in range(strip_length)]
+
+            # Set the corresponding LED to a different color (e.g., "red")
+            led_color = "red"
+            self._instance.colors[strip_index][pixel] = led_color
+
+            # Update the dictionary with LED states
+            led_state_dict[f"LED_Strip_{strip_index}"] = {"pixels": self._instance.colors[strip_index]}
+                # Outputs in the form of: 
+                #   "LED_Strip_0": {"pixels": ["black", "black", ...]},
+                #   "LED_Strip_1": {"pixels": ["black", "black", ...]},
+
+        # Convert the dictionary to a JSON string
+        led_state_json = json.dumps(led_state_dict, indent=2)
+        
+        # Publish the LED state to the LED controller topic
+        client.publish("ece180d/team3/reverseabomb/ledcontroller", led_state_json, qos=1)
+        
+        
+#GameState class handles the gameplay *********************************************************
 class GameState:
     _instance = None
 
@@ -76,12 +122,18 @@ class GameState:
         if cls._instance is None:
             cls._instance = super(GameState, cls).__new__(
                 cls, *args, **kwargs)
-            # Initialize your singleton instance here
-            cls._instance.powerup_state = "NONE"
+        # Initialize your singleton instance here
+        
+            #no powerups at start
+            cls._instance.powerup_state = "NONE" 
+            
+            #set initial positions of leds to middle of the field this is a 6-element array 
             cls._instance.bomb_positions = [
                 LED_STRIP_LENGTH/2, LED_STRIP_LENGTH/2,
                 LED_STRIP_LENGTH/2, LED_STRIP_LENGTH/2,
                 LED_STRIP_LENGTH/2, LED_STRIP_LENGTH/2]
+            
+            #send half of the bombs toward each player. 6-element array for each row
             cls._instance.bomb_directions = [
                 TOWARDS_PLAYER1, TOWARDS_PLAYER2,
                 TOWARDS_PLAYER1, TOWARDS_PLAYER2,
@@ -89,11 +141,14 @@ class GameState:
             # Add more initialization as needed
         return cls._instance
 
+    #this function is responsible for reverseing the bomb when a valid button press is registered
     def reverse_bomb(self, player_id, bomb_id):
         if (((self.bomb_directions[bomb_id] == TOWARDS_PLAYER1) and player_id == 1)
            or ((self.bomb_directions[bomb_id] == TOWARDS_PLAYER2) and player_id == 2)):
             # Reverse the direction of the bomb
             self.bomb_directions[bomb_id] = -1 * self.bomb_directions[bomb_id]
+            
+    #this function is used to update the positions of the leds when a bomb explodes. Reset the bomb to middle of field
     def updatePoisitions(self):
         for i in range(0, LED_STRIP_COUNT):
             self.bomb_positions[i] = self.bomb_positions[i] + self.bomb_directions[i]
@@ -104,24 +159,13 @@ class GameState:
                 self.bomb_positions[i] = LED_STRIP_LENGTH/2
 
 
-class LEDState:
-    _instance = None
-
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super(LEDState, cls).__new__(
-                cls, *args, **kwargs)
-            # Initialize your singleton instance here
-            cls._instance.colors =  [
-                ["black" for _ in range(LED_STRIP_LENGTH)] for _ in range(LED_STRIP_COUNT)]
-        return cls._instance
-
 
 
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
     client.subscribe("ece180d/team3/reverseabomb/wristband1", qos=1)
     client.subscribe("ece180d/team3/reverseabomb/wristband2", qos=1)
+    client.publish("ece180d/team3/reverseabomb/ledcontroller", qos=1) #publish LED state
 
 
 def on_message(client, userdata, msg):
@@ -226,10 +270,12 @@ def main():
                     # Trigger defend action in the game
                     # Example: player.defend()
 #                    print(f"Voice detected: {event.phrase}")
-        #MOVE THE BOMBS
+
+        #Monitor if boms explode
         gameState.updatePoisitions()                        
 
-        # Send LED state to the LED strips  
+        # Send LED state to the LED strips
+        
                     
         # Fill the screen with sky blue
         screen.fill((135, 206, 250))
