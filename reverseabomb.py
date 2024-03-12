@@ -49,8 +49,11 @@ trigger_words_actions = {
 recognizer = sr.Recognizer()
 microphone = sr.Microphone()
 
-# Function to listen for trigger words and generate custom events
-def listen_and_trigger():
+# speech function to be called
+
+
+def listen_and_convert():
+    # Loop indefinitely to continuously listen for speech input
     while True:
         with microphone as source:
             print("Listening for trigger words...")
@@ -72,6 +75,11 @@ def listen_and_trigger():
         except sr.RequestError as e:
             print("Could not request results; {0}".format(e))
 
+        # if(trigger_word in text_upper):
+        #     custom_event = pygame.event.Event(VOICE)
+        #     pygame.event.post(custom_event, phrase = text_upper)
+
+
 
 class GameState:
     _instance = None
@@ -80,12 +88,18 @@ class GameState:
         if cls._instance is None:
             cls._instance = super(GameState, cls).__new__(
                 cls, *args, **kwargs)
-            # Initialize your singleton instance here
-            cls._instance.powerup_state = "NONE"
+        # Initialize your singleton instance here
+        
+            #no powerups at start
+            cls._instance.powerup_state = "NONE" 
+            
+            #set initial positions of leds to middle of the field this is a 6-element array 
             cls._instance.bomb_positions = [
                 LED_STRIP_LENGTH/2, LED_STRIP_LENGTH/2,
                 LED_STRIP_LENGTH/2, LED_STRIP_LENGTH/2,
                 LED_STRIP_LENGTH/2, LED_STRIP_LENGTH/2]
+            
+            #send half of the bombs toward each player. 6-element array for each row
             cls._instance.bomb_directions = [
                 TOWARDS_PLAYER1, TOWARDS_PLAYER2,
                 TOWARDS_PLAYER1, TOWARDS_PLAYER2,
@@ -93,11 +107,14 @@ class GameState:
             # Add more initialization as needed
         return cls._instance
 
+    #this function is responsible for reverseing the bomb when a valid button press is registered
     def reverse_bomb(self, player_id, bomb_id):
         if (((self.bomb_directions[bomb_id] == TOWARDS_PLAYER1) and player_id == 1)
            or ((self.bomb_directions[bomb_id] == TOWARDS_PLAYER2) and player_id == 2)):
             # Reverse the direction of the bomb
             self.bomb_directions[bomb_id] = -1 * self.bomb_directions[bomb_id]
+            
+    #this function is used to update the positions of the leds when a bomb explodes. Reset the bomb to middle of field
     def updatePoisitions(self):
         for i in range(0, LED_STRIP_COUNT):
             self.bomb_positions[i] = self.bomb_positions[i] + self.bomb_directions[i]
@@ -108,24 +125,13 @@ class GameState:
                 self.bomb_positions[i] = LED_STRIP_LENGTH/2
 
 
-class LEDState:
-    _instance = None
-
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super(LEDState, cls).__new__(
-                cls, *args, **kwargs)
-            # Initialize your singleton instance here
-            cls._instance.colors =  [
-                ["black" for _ in range(LED_STRIP_LENGTH)] for _ in range(LED_STRIP_COUNT)]
-        return cls._instance
-
 
 
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
     client.subscribe("ece180d/team3/reverseabomb/wristband1", qos=1)
     client.subscribe("ece180d/team3/reverseabomb/wristband2", qos=1)
+    client.publish("ece180d/team3/reverseabomb/ledcontroller", qos=1) #publish LED state
 
 
 def on_message(client, userdata, msg):
@@ -230,10 +236,12 @@ def main():
                     # Trigger defend action in the game
                     # Example: player.defend()
 #                    print(f"Voice detected: {event.phrase}")
-        #MOVE THE BOMBS
+
+        #Monitor if boms explode
         gameState.updatePoisitions()                        
 
-        # Send LED state to the LED strips  
+        # Send LED state to the LED strips
+        
                     
         # Fill the screen with sky blue
         screen.fill((135, 206, 250))
