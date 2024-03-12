@@ -50,8 +50,6 @@ recognizer = sr.Recognizer()
 microphone = sr.Microphone()
 
 # speech function to be called
-
-
 def listen_and_convert():
     # Loop indefinitely to continuously listen for speech input
     while True:
@@ -62,11 +60,12 @@ def listen_and_convert():
         try:
             # Use PocketSphinx for faster recognition
             recognized_text = recognizer.recognize_sphinx(audio_data, keyword_entries=[(word, 1.0) for word in sum([words[0] for words in trigger_words_actions.values()], [])])
-            print("Recognized:", recognized_text)
+            recognized_text_upper = recognized_text.upper()  # Convert recognized text to uppercase
+            print("Recognized:", recognized_text_upper)
             
             # Check if any trigger word is detected
             for word_list, action in trigger_words_actions.values():
-                detected_words = [word for word in word_list if word in recognized_text]
+                detected_words = [word for word in word_list if word in recognized_text_upper]
                 if detected_words:
                     pygame.event.post(pygame.event.Event(VOICE_EVENT, action=action))  # Generate custom event with action
 
@@ -74,10 +73,6 @@ def listen_and_convert():
             print("Sorry, could not understand audio.")
         except sr.RequestError as e:
             print("Could not request results; {0}".format(e))
-
-        # if(trigger_word in text_upper):
-        #     custom_event = pygame.event.Event(VOICE)
-        #     pygame.event.post(custom_event, phrase = text_upper)
 
 
 
@@ -219,15 +214,24 @@ def main():
             elif event.type == SLAP_2:
                 print("SLAP 2 detected")
 
-            elif event.type == VOICE:
+            elif event.type == VOICE_EVENT:
                 print("Voice detected")
-                if(event.phrase == "STOP"):
+                if(event.action == "STOP_ACTION"):
                     print("STOP detected")
                     running = False
-                elif(event.phrase == "FREEZE"):
+                elif(event.action == "FREEZE_ACTION"):
                     print("FREEZE detected")
                     if(gameState.powerup_state == "NONE"):
                         gameState.powerup_state = "FREEZE"
+                elif event.action == "START_ACTION":
+                    print("START detected")
+
+                elif event.action == "REVERSE_ACTION":
+                    print("REVERSE detected")
+
+                elif event.action == "DIE_ACTION":
+                    print("DIE detected")
+
 #            if spoken_text:
 #                if "freeze" in spoken_text:
                     # Trigger attack action in the game

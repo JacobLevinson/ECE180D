@@ -2,7 +2,7 @@
 
 import speech_recognition as sr
 import time
-
+import pygame
 # create function where it's set to none and once it detects one of our speech words
 # chnage that variable and the game logic should be able to handle that change of what power up should happen
 
@@ -170,26 +170,42 @@ def recognize_speech_from_mic(recognizer, microphone):
     return response
 '''
 
+VOICE_EVENT = pygame.USEREVENT + 3
+
+
+# Define the lists of trigger words and their associated actions
+trigger_words_actions = {
+    "freeze": (["freeze", "breeze", "aries", "fries", "jewelries", "please", "reese", "trees", "three", "praise", "price", "brief", "free", "race"], "FREEZE_ACTION"),
+    "start": (["start", "starks", "stardust"], "START_ACTION"),
+    "stop": (["stop"], "STOP_ACTION"),
+    "reverse": (["reverse", "brothers", "rivers"], "REVERSE_ACTION"),
+    "die": (["die", "bye", "dive"], "DIE_ACTION")
+}
+
+# Initialize the recognizer and microphone
 recognizer = sr.Recognizer()
 microphone = sr.Microphone()
-trigger_word = "freeze"
 
-while True:
-    with sr.Microphone() as source:
-        print("Listening for trigger word...")
-        audio_data = recognizer.listen(source)
+# speech function to be called
+def listen_and_convert():
+    # Loop indefinitely to continuously listen for speech input
+    while True:
+        with microphone as source:
+            print("Listening for trigger words...")
+            audio_data = recognizer.listen(source)
+        
         try:
             # Use PocketSphinx for faster recognition
-            recognized_text = recognizer.recognize_sphinx(audio_data, keyword_entries=[(trigger_word, 1.0)])
+            recognized_text = recognizer.recognize_sphinx(audio_data, keyword_entries=[(word, 1.0) for word in sum([words[0] for words in trigger_words_actions.values()], [])])
             print("Recognized:", recognized_text)
-            # Check if the trigger word is detected
-            if trigger_word in recognized_text:
-                print("Trigger word detected! Continuing to listen...")
-                # No action needed to stop the loop, it continues
+            
+            # Check if any trigger word is detected
+            for word_list, action in trigger_words_actions.values():
+                detected_words = [word for word in word_list if word in recognized_text]
+                if detected_words:
+                    pygame.event.post(pygame.event.Event(VOICE_EVENT, action=action))  # Generate custom event with action
+
         except sr.UnknownValueError:
             print("Sorry, could not understand audio.")
         except sr.RequestError as e:
             print("Could not request results; {0}".format(e))
-
-# Call the function to start listening for the trigger word
-listen_and_detect_trigger("freeze")
