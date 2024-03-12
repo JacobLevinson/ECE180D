@@ -62,7 +62,7 @@ def recognize_speech_from_mic(recognizer, microphone):
 print("speech ready")
     
 #speech_text = recognize_speech_from_mic(recognizer, microphone)
-
+'''
 # Define the initial state of the power-up variable
 power_up = None
 
@@ -76,19 +76,20 @@ def detect_speech(speech_text):
             power_up = word  # Update power-up variable
             print("Activated Power-Up:", power_up)
             break
-
+'''
 if __name__ == "__main__":
 
-    speech_words = ["freeze", "start", "stop", "die", "reverse", "Breeze","dive","fairies", "dines","brothers", "rivers", "lighting", "aries",
-                    "fries", "jewelries","jewelry", "please", "reese", "trees", "three",
-                    "praise", "price","brief","free","race",
-                    "starks","stardust",
-                    "bye"]
+    freeze_words = ["freeze", "breeze", "aries", "fries", "jewelries", "please", "reese", "trees", "three", "praise", "price", "brief", "free", "race"]
+    start_words = ["start","starks","stardust"]
+    stop_words = ["stop"]
+    reverse_words = ["reverse", "brothers", "rivers"]
+    die_words = ["die", "bye", "dive"]
+
 
     # Create recognizer and mic instances
-    recognizer = sr.Recognizer()
-    microphone = sr.Microphone()
-
+#    recognizer = sr.Recognizer()
+#    microphone = sr.Microphone()
+'''
     # Loop indefinitely to continuously listen for speech input
     while True:
         # Adjust recognizer sensitivity to ambient noise and record audio
@@ -107,7 +108,7 @@ if __name__ == "__main__":
             print("Could not request results; {0}".format(e))
 
 print("Activated Power-Up:", power_up)
-
+'''
 # Example usage
 #speech_text = "I summon the power of fire!"
 #detect_speech(speech_text)
@@ -120,7 +121,7 @@ print("Activated Power-Up:", power_up)
 # we'll deal with it later.
 
 # post the event in my function, # make a function that triggers an event, then the game logic will handle that
-
+'''
 def recognize_speech_from_mic(recognizer, microphone):
     """Transcribe speech from recorded from `microphone`.
 
@@ -167,30 +168,28 @@ def recognize_speech_from_mic(recognizer, microphone):
         response["error"] = "Unable to recognize speech"
 
     return response
+'''
 
-# Convert AudioData to text
-def audio_to_text(audio_data):
-    try:
-        text = recognizer.recognize_google(audio_data)
-        return text
-    except sr.UnknownValueError:
-        return "Sorry, could not understand audio."
-    except sr.RequestError as e:
-        return "Could not request results; {0}".format(e)
-    
-# Loop indefinitely to continuously listen for speech input
+recognizer = sr.Recognizer()
+microphone = sr.Microphone()
+trigger_word = "freeze"
+
 while True:
-    with microphone as source:
+    with sr.Microphone() as source:
+        print("Listening for trigger word...")
         audio_data = recognizer.listen(source)
-        text = audio_to_text(audio_data)
-        text_upper = text.upper()
-        print(text_upper)
+        try:
+            # Use PocketSphinx for faster recognition
+            recognized_text = recognizer.recognize_sphinx(audio_data, keyword_entries=[(trigger_word, 1.0)])
+            print("Recognized:", recognized_text)
+            # Check if the trigger word is detected
+            if trigger_word in recognized_text:
+                print("Trigger word detected! Continuing to listen...")
+                # No action needed to stop the loop, it continues
+        except sr.UnknownValueError:
+            print("Sorry, could not understand audio.")
+        except sr.RequestError as e:
+            print("Could not request results; {0}".format(e))
 
-    # Recognize speech from the audio
-    try:
-        speech_text = recognizer.recognize_google(audio_data)
-#        print("You said:", speech_text)
-#    except sr.UnknownValueError:
-#        print("Could not understand audio")
-#   except sr.RequestError as e:
-#        print("Could not request results; {0}".format(e))
+# Call the function to start listening for the trigger word
+listen_and_detect_trigger("freeze")

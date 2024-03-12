@@ -20,9 +20,6 @@ import pygame
 # Import random for random numbers
 import random
 
-
-
-
 # Define constants for the screen width and height
 SCREEN_WIDTH = 960
 SCREEN_HEIGHT = 720
@@ -36,37 +33,44 @@ TOWARDS_PLAYER2 = -1
 # Create custom events for adding a new enemy and cloud
 SLAP_1 = pygame.USEREVENT + 1
 SLAP_2 = pygame.USEREVENT + 2
-VOICE = pygame.USEREVENT + 3
+VOICE_EVENT = pygame.USEREVENT + 3
 
 
-# Create recognizer and mic instances
+# Define the lists of trigger words and their associated actions
+trigger_words_actions = {
+    "freeze": (["freeze", "breeze", "aries", "fries", "jewelries", "please", "reese", "trees", "three", "praise", "price", "brief", "free", "race"], "FREEZE_ACTION"),
+    "start": (["start", "starks", "stardust"], "START_ACTION"),
+    "stop": (["stop"], "STOP_ACTION"),
+    "reverse": (["reverse", "brothers", "rivers"], "REVERSE_ACTION"),
+    "die": (["die", "bye", "dive"], "DIE_ACTION")
+}
+
+# Initialize the recognizer and microphone
 recognizer = sr.Recognizer()
 microphone = sr.Microphone()
 
-# speech function to be called
-
-
-def listen_and_convert():
-    # Loop indefinitely to continuously listen for speech input
+# Function to listen for trigger words and generate custom events
+def listen_and_trigger():
     while True:
         with microphone as source:
+            print("Listening for trigger words...")
             audio_data = recognizer.listen(source)
-
-        # Convert AudioData to text
+        
         try:
-            text = recognizer.recognize_google(
-                audio_data)  # converting AudioData to text
-            text_upper = text.upper()  # converting the text into all uppercase string
-            print("Recognized text:", text_upper)
-        except sr.UnknownValueError:  # if not understanding
+            # Use PocketSphinx for faster recognition
+            recognized_text = recognizer.recognize_sphinx(audio_data, keyword_entries=[(word, 1.0) for word in sum([words[0] for words in trigger_words_actions.values()], [])])
+            print("Recognized:", recognized_text)
+            
+            # Check if any trigger word is detected
+            for word_list, action in trigger_words_actions.values():
+                detected_words = [word for word in word_list if word in recognized_text]
+                if detected_words:
+                    pygame.event.post(pygame.event.Event(VOICE_EVENT, action=action))  # Generate custom event with action
+
+        except sr.UnknownValueError:
             print("Sorry, could not understand audio.")
-        except sr.RequestError as e:  # if not understanding
+        except sr.RequestError as e:
             print("Could not request results; {0}".format(e))
-
-        # if(trigger_word in text_upper):
-        #     custom_event = pygame.event.Event(VOICE)
-        #     pygame.event.post(custom_event, phrase = text_upper)
-
 
 
 class GameState:
