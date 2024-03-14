@@ -139,11 +139,11 @@ class GameState:
                 self.bomb_positions[i] = LED_STRIP_LENGTH/2
                 ledState.colors[i] = ["red" for _ in range(LED_STRIP_LENGTH)]
             else:
-                ledState.colors[i][int(self.bomb_positions[i])] = "red"
+                ledState.colors[i][self.bomb_positions[i]] = "red"
+                
+                
 
 # This class is to manage the current positions of the leds. *********************************
-
-
 class LEDState:
     _instance = None
 
@@ -188,7 +188,7 @@ class LEDState:
 
 
 
-
+#functions for the client to puslish and subscribe data ************************
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
     client.subscribe("ece180d/team3/reverseabomb/wristband1", qos=1)
@@ -310,7 +310,7 @@ def main():
         gameState.updatePoisitions(ledState)
 
         # Send LED state to the LED strips
-        
+        ledState.send_LED_state(client, gameState, LED_STRIP_LENGTH, LED_STRIP_COUNT)
                     
         # DEMO SECTION: Just show LEDs in pygame window
         for i in range(0, LED_STRIP_COUNT):

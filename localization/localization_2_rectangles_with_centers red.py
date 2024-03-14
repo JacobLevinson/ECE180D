@@ -1,27 +1,31 @@
-# Kind of glitchy with just one object
-
 import cv2
 import numpy as np
 
-# Function to detect neon green objects
-def detect_neon_green(frame):
+# Red doesn't seem to work well... it goes back and forth
+
+# Function to detect red objects
+def detect_red(frame):
     # Convert frame from BGR to HSV color space
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-    # Define range of neon green color in HSV
-    lower_green = np.array([60, 100, 100])
-    upper_green = np.array([100, 255, 255])
+    # Define range of red color in HSV
+    lower_red1 = np.array([0, 100, 100])
+    upper_red1 = np.array([10, 255, 255])
+    lower_red2 = np.array([160, 100, 100])
+    upper_red2 = np.array([179, 255, 255])
 
-    # Threshold the HSV image to get only neon green colors
-    mask = cv2.inRange(hsv, lower_green, upper_green)
+    # Combine the two ranges
+    mask1 = cv2.inRange(hsv, lower_red1, upper_red1)
+    mask2 = cv2.inRange(hsv, lower_red2, upper_red2)
+    mask = cv2.bitwise_or(mask1, mask2)
 
     # Find contours in the mask
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    # Sort contours by area in descending order
+    # Sort contours by area in descending order and take only the first two contours
     contours = sorted(contours, key=cv2.contourArea, reverse=True)[:2]
 
-    # Draw bounding boxes around the two largest detected objects
+    # Draw bounding boxes around the first two detected objects
     for contour in contours:
         # Get bounding box coordinates
         x, y, w, h = cv2.boundingRect(contour)
@@ -45,11 +49,11 @@ def main():
         if not ret:
             break
 
-        # Call function to detect neon green objects
-        result = detect_neon_green(frame)
+        # Call function to detect red objects
+        result = detect_red(frame)
 
         # Display the result
-        cv2.imshow('Neon Green Detection', result)
+        cv2.imshow('Red Detection', result)
 
         # Exit loop if 'q' is pressed
         if cv2.waitKey(1) & 0xFF == ord('q'):
