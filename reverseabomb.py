@@ -139,7 +139,7 @@ class GameState:
                 self.bomb_positions[i] = LED_STRIP_LENGTH/2
                 ledState.colors[i] = ["red" for _ in range(LED_STRIP_LENGTH)]
             else:
-                ledState.colors[i][self.bomb_positions[i]] = "red"
+                ledState.colors[i][int(self.bomb_positions[i])] = "red"
                 
                 
 
