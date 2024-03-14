@@ -101,7 +101,11 @@ class GameState:
                 TOWARDS_PLAYER1, TOWARDS_PLAYER2,
                 TOWARDS_PLAYER1, TOWARDS_PLAYER2,
                 TOWARDS_PLAYER1, TOWARDS_PLAYER2]
-            # Add more initialization as needed
+            
+            # Player Scores (lower is better) + 1 when you explode
+            cls._instance.player1_score = 0
+            cls._instance.player2_score = 0
+
         return cls._instance
 
     #this function is responsible for reverseing the bomb when a valid button press is registered
@@ -116,8 +120,13 @@ class GameState:
             self.bomb_positions[i] = self.bomb_positions[i] + \
                 self.bomb_directions[i]
 
-            if (self.bomb_positions[i] == 0 or self.bomb_positions[i] == LED_STRIP_LENGTH):
+            if (self.bomb_positions[i] <= 0 or self.bomb_positions[i] >= LED_STRIP_LENGTH):
                 # Explode!
+                # Update player scores
+                if(self.bomb_directions[i] == TOWARDS_PLAYER1):
+                    self.player1_score += 1
+                else:
+                    self.player2_score += 1
                 print(f"Bomb {i} exploded!")
                 # Reset bomb position
                 self.bomb_positions[i] = LED_STRIP_LENGTH/2
