@@ -248,16 +248,8 @@ def main():
                 elif event.action == "DIE_ACTION":
                     print("DIE detected")
 
-#            if spoken_text:
-#                if "freeze" in spoken_text:
-                    # Trigger attack action in the game
-                    # Example: player.attack()
-#                elif "defend" in spoken_text:
-                    # Trigger defend action in the game
-                    # Example: player.defend()
-#                    print(f"Voice detected: {event.phrase}")
 
-        #Monitor if boms explode
+        #Monitor if bombs explode
         gameState.updatePoisitions()                        
 
         # Send LED state to the LED strips
