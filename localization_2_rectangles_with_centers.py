@@ -1,4 +1,4 @@
-# Kind of glitchy with just one 
+# Kind of glitchy with just one object
 
 import cv2
 import numpy as np
