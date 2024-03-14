@@ -1,6 +1,8 @@
 import cv2
 import numpy as np
 
+# Pink seems to work better than orange. 
+
 # Function to detect pink and green objects
 def detect_colors(frame):
     # Convert frame from BGR to HSV color space
@@ -13,7 +15,7 @@ def detect_colors(frame):
     # Define range of green color in HSV
     lower_green = np.array([60, 100, 100])  # Adjust values as needed
     upper_green = np.array([80, 255, 255])  # Adjust values as needed
-
+    
     # Threshold the HSV image to get only pink colors
     mask_pink = cv2.inRange(hsv, lower_pink, upper_pink)
 
