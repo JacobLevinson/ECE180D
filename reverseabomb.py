@@ -94,14 +94,19 @@ class GameState:
            or ((self.bomb_directions[bomb_id] == TOWARDS_PLAYER2) and player_id == 2)):
             # Reverse the direction of the bomb
             self.bomb_directions[bomb_id] = -1 * self.bomb_directions[bomb_id]
-    def updatePoisitions(self):
+
+    def updatePoisitions(self, ledState):
         for i in range(0, LED_STRIP_COUNT):
-            self.bomb_positions[i] = self.bomb_positions[i] + self.bomb_directions[i]
-            if(self.bomb_positions[i] == 0 or self.bomb_positions[i] == LED_STRIP_LENGTH):
+            self.bomb_positions[i] = self.bomb_positions[i] + \
+                self.bomb_directions[i]
+
+            if (self.bomb_positions[i] == 0 or self.bomb_positions[i] == LED_STRIP_LENGTH):
                 # Explode!
                 print(f"Bomb {i} exploded!")
                 # Reset bomb position
                 self.bomb_positions[i] = LED_STRIP_LENGTH/2
+                ledState.colors[i] = ["red" for _ in range(LED_STRIP_LENGTH)]
+
 
 
 class LEDState:
