@@ -74,7 +74,56 @@ def listen_and_convert():
         except sr.RequestError as e:
             print("Could not request results; {0}".format(e))
 
+#This class is to manage the current positions of the leds. *********************************
+class LEDState:
+    _instance = None
 
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super(LEDState, cls).__new__(
+                cls, *args, **kwargs)
+        
+        # Initialize your singleton instance here
+            #Here we have an initialization of a 2D List, the first list is for the specific led strip 
+            #and the second list is for the index of the specific led in the strip
+            #initially, set all leds to off a.k.a "black"
+            cls._instance.colors = [
+                ["black" for _ in range(LED_STRIP_LENGTH)] for _ in range(LED_STRIP_COUNT)]
+        return cls._instance
+    
+    def send_LED_state(self, client, gameState, strip_length, strip_count):
+        # Create a dictionary to store LED states for each strip
+        led_state_dict = {}
+
+        # Set LEDs at bomb positions to a different color (e.g., "red")
+        for strip_index, pixel in enumerate(gameState.bomb_positions):
+            # Convert position to an integer (assuming it's a float)
+            pixel = int(pixel)
+            
+            # Ensure the position is within the LED strip length
+            pixel = max(0, min(pixel, strip_length - 1))
+            
+            # Set all LEDs to "black" in the stip
+            self._instance.colors[strip_index] = ["black" for _ in range(strip_length)]
+
+            # Set the corresponding LED to a different color (e.g., "red")
+            led_color = "red"
+            self._instance.colors[strip_index][pixel] = led_color
+
+            # Update the dictionary with LED states
+            led_state_dict[f"LED_Strip_{strip_index}"] = {"pixels": self._instance.colors[strip_index]}
+                # Outputs in the form of: 
+                #   "LED_Strip_0": {"pixels": ["black", "black", ...]},
+                #   "LED_Strip_1": {"pixels": ["black", "black", ...]},
+
+        # Convert the dictionary to a JSON string
+        led_state_json = json.dumps(led_state_dict, indent=2)
+        
+        # Publish the LED state to the LED controller topic
+        client.publish("ece180d/team3/reverseabomb/ledcontroller", led_state_json, qos=1)
+        
+        
+#GameState class handles the gameplay *********************************************************
 
 class GameState:
     _instance = None
@@ -120,22 +169,6 @@ class GameState:
                 # Reset bomb position
                 self.bomb_positions[i] = LED_STRIP_LENGTH/2
                 ledState.colors[i] = ["red" for _ in range(LED_STRIP_LENGTH)]
-
-
-
-
-class LEDState:
-    _instance = None
-
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super(LEDState, cls).__new__(
-                cls, *args, **kwargs)
-            # Initialize your singleton instance here
-            cls._instance.colors =  [
-                ["black" for _ in range(LED_STRIP_LENGTH)] for _ in range(LED_STRIP_COUNT)]
-        return cls._instance
-
 
 
 def on_connect(client, userdata, flags, rc):
