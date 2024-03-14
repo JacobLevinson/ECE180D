@@ -13,6 +13,7 @@ import json
 import math
 import random
 import speech_recognition as sr
+import time
 
 # Import the pygame module
 import pygame
@@ -49,8 +50,10 @@ trigger_words_actions = {
 recognizer = sr.Recognizer()
 microphone = sr.Microphone()
 
+time.sleep(2)
 # speech function to be called
 def listen_and_convert():
+    time.sleep(2)
     # Loop indefinitely to continuously listen for speech input
     while True:
         with microphone as source:

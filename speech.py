@@ -85,11 +85,11 @@ if __name__ == "__main__":
     reverse_words = ["reverse", "brothers", "rivers"]
     die_words = ["die", "bye", "dive"]
 
-
-    # Create recognizer and mic instances
-#    recognizer = sr.Recognizer()
-#    microphone = sr.Microphone()
 '''
+    # Create recognizer and mic instances
+    recognizer = sr.Recognizer()
+    microphone = sr.Microphone()
+
     # Loop indefinitely to continuously listen for speech input
     while True:
         # Adjust recognizer sensitivity to ambient noise and record audio
@@ -106,8 +106,9 @@ if __name__ == "__main__":
             print("Could not understand audio")
         except sr.RequestError as e:
             print("Could not request results; {0}".format(e))
-
-print("Activated Power-Up:", power_up)
+'''
+# print("Activated Power-Up:", power_up)
+'''
 '''
 # Example usage
 #speech_text = "I summon the power of fire!"
@@ -173,7 +174,8 @@ def recognize_speech_from_mic(recognizer, microphone):
 VOICE_EVENT = pygame.USEREVENT + 3
 
 
-# Define the lists of trigger words and their associated actions
+# Define the trigger words and their corresponding actions
+
 trigger_words_actions = {
     "freeze": (["freeze", "breeze", "aries", "fries", "jewelries", "please", "reese", "trees", "three", "praise", "price", "brief", "free", "race"], "FREEZE_ACTION"),
     "start": (["start", "starks", "stardust"], "START_ACTION"),
@@ -182,12 +184,19 @@ trigger_words_actions = {
     "die": (["die", "bye", "dive"], "DIE_ACTION")
 }
 
+freeze_words = ["freeze", "breeze", "aries", "fries", "jewelries", "please", "reese", "trees", "three", "praise", "price", "brief", "free", "race"]
+start_words = ["start","starks","stardust"]
+stop_words = ["stop"]
+reverse_words = ["reverse", "brothers", "rivers"]
+die_words = ["die", "bye", "dive"]
+
 # Initialize the recognizer and microphone
 recognizer = sr.Recognizer()
 microphone = sr.Microphone()
 
-# speech function to be called
+# Define a function to listen for speech input
 def listen_and_convert():
+#    time.sleep(2)
     # Loop indefinitely to continuously listen for speech input
     while True:
         with microphone as source:
@@ -197,15 +206,15 @@ def listen_and_convert():
         try:
             # Use PocketSphinx for faster recognition
             recognized_text = recognizer.recognize_sphinx(audio_data, keyword_entries=[(word, 1.0) for word in sum([words[0] for words in trigger_words_actions.values()], [])])
-            print("Recognized:", recognized_text)
+            recognized_text_upper = recognized_text.upper()  # Convert recognized text to uppercase
+            print("Recognized:", recognized_text_upper)
             
-            # Check if any trigger word is detected
-            for word_list, action in trigger_words_actions.values():
-                detected_words = [word for word in word_list if word in recognized_text]
-                if detected_words:
-                    pygame.event.post(pygame.event.Event(VOICE_EVENT, action=action))  # Generate custom event with action
+
 
         except sr.UnknownValueError:
             print("Sorry, could not understand audio.")
         except sr.RequestError as e:
             print("Could not request results; {0}".format(e))
+
+# Call the function to start listening
+listen_and_convert()
