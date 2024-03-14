@@ -20,9 +20,6 @@ import pygame
 # Import random for random numbers
 import random
 
-
-
-
 # Define constants for the screen width and height
 SCREEN_WIDTH = 960
 SCREEN_HEIGHT = 720
@@ -36,36 +33,46 @@ TOWARDS_PLAYER2 = -1
 # Create custom events for adding a new enemy and cloud
 SLAP_1 = pygame.USEREVENT + 1
 SLAP_2 = pygame.USEREVENT + 2
-VOICE = pygame.USEREVENT + 3
+VOICE_EVENT = pygame.USEREVENT + 3
 
 
-# Create recognizer and mic instances
+# Define the lists of trigger words and their associated actions
+trigger_words_actions = {
+    "freeze": (["freeze", "breeze", "aries", "fries", "jewelries", "please", "reese", "trees", "three", "praise", "price", "brief", "free", "race"], "FREEZE_ACTION"),
+    "start": (["start", "starks", "stardust"], "START_ACTION"),
+    "stop": (["stop"], "STOP_ACTION"),
+    "reverse": (["reverse", "brothers", "rivers"], "REVERSE_ACTION"),
+    "die": (["die", "bye", "dive"], "DIE_ACTION")
+}
+
+# Initialize the recognizer and microphone
 recognizer = sr.Recognizer()
 microphone = sr.Microphone()
 
 # speech function to be called
-
-
 def listen_and_convert():
     # Loop indefinitely to continuously listen for speech input
     while True:
         with microphone as source:
+            print("Listening for trigger words...")
             audio_data = recognizer.listen(source)
-
-        # Convert AudioData to text
+        
         try:
-            text = recognizer.recognize_google(
-                audio_data)  # converting AudioData to text
-            text_upper = text.upper()  # converting the text into all uppercase string
-            print("Recognized text:", text_upper)
-        except sr.UnknownValueError:  # if not understanding
-            print("Sorry, could not understand audio.")
-        except sr.RequestError as e:  # if not understanding
-            print("Could not request results; {0}".format(e))
+            # Use PocketSphinx for faster recognition
+            recognized_text = recognizer.recognize_sphinx(audio_data, keyword_entries=[(word, 1.0) for word in sum([words[0] for words in trigger_words_actions.values()], [])])
+            recognized_text_upper = recognized_text.upper()  # Convert recognized text to uppercase
+            print("Recognized:", recognized_text_upper)
+            
+            # Check if any trigger word is detected
+            for word_list, action in trigger_words_actions.values():
+                detected_words = [word for word in word_list if word in recognized_text_upper]
+                if detected_words:
+                    pygame.event.post(pygame.event.Event(VOICE_EVENT, action=action))  # Generate custom event with action
 
-        # if(trigger_word in text_upper):
-        #     custom_event = pygame.event.Event(VOICE)
-        #     pygame.event.post(custom_event, phrase = text_upper)
+        except sr.UnknownValueError:
+            print("Sorry, could not understand audio.")
+        except sr.RequestError as e:
+            print("Could not request results; {0}".format(e))
 
 
 
@@ -76,12 +83,18 @@ class GameState:
         if cls._instance is None:
             cls._instance = super(GameState, cls).__new__(
                 cls, *args, **kwargs)
-            # Initialize your singleton instance here
-            cls._instance.powerup_state = "NONE"
+        # Initialize your singleton instance here
+        
+            #no powerups at start
+            cls._instance.powerup_state = "NONE" 
+            
+            #set initial positions of leds to middle of the field this is a 6-element array 
             cls._instance.bomb_positions = [
                 LED_STRIP_LENGTH/2, LED_STRIP_LENGTH/2,
                 LED_STRIP_LENGTH/2, LED_STRIP_LENGTH/2,
                 LED_STRIP_LENGTH/2, LED_STRIP_LENGTH/2]
+            
+            #send half of the bombs toward each player. 6-element array for each row
             cls._instance.bomb_directions = [
                 TOWARDS_PLAYER1, TOWARDS_PLAYER2,
                 TOWARDS_PLAYER1, TOWARDS_PLAYER2,
@@ -89,13 +102,13 @@ class GameState:
             # Add more initialization as needed
         return cls._instance
 
+    #this function is responsible for reverseing the bomb when a valid button press is registered
     def reverse_bomb(self, player_id, bomb_id):
         if (((self.bomb_directions[bomb_id] == TOWARDS_PLAYER1) and player_id == 1)
            or ((self.bomb_directions[bomb_id] == TOWARDS_PLAYER2) and player_id == 2)):
             # Reverse the direction of the bomb
             self.bomb_directions[bomb_id] = -1 * self.bomb_directions[bomb_id]
-
-    def updatePoisitions(self, ledState):
+    def updatePoisitions(self):
         for i in range(0, LED_STRIP_COUNT):
             self.bomb_positions[i] = self.bomb_positions[i] + \
                 self.bomb_directions[i]
@@ -105,8 +118,6 @@ class GameState:
                 print(f"Bomb {i} exploded!")
                 # Reset bomb position
                 self.bomb_positions[i] = LED_STRIP_LENGTH/2
-                ledState.colors[i] = ["red" for _ in range(LED_STRIP_LENGTH)]
-
 
 
 class LEDState:
@@ -127,6 +138,7 @@ def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
     client.subscribe("ece180d/team3/reverseabomb/wristband1", qos=1)
     client.subscribe("ece180d/team3/reverseabomb/wristband2", qos=1)
+    client.publish("ece180d/team3/reverseabomb/ledcontroller", qos=1) #publish LED state
 
 
 def on_message(client, userdata, msg):
@@ -214,15 +226,24 @@ def main():
             elif event.type == SLAP_2:
                 print("SLAP 2 detected")
 
-            elif event.type == VOICE:
+            elif event.type == VOICE_EVENT:
                 print("Voice detected")
-                if(event.phrase == "STOP"):
+                if(event.action == "STOP_ACTION"):
                     print("STOP detected")
                     running = False
-                elif(event.phrase == "FREEZE"):
+                elif(event.action == "FREEZE_ACTION"):
                     print("FREEZE detected")
                     if(gameState.powerup_state == "NONE"):
                         gameState.powerup_state = "FREEZE"
+                elif event.action == "START_ACTION":
+                    print("START detected")
+
+                elif event.action == "REVERSE_ACTION":
+                    print("REVERSE detected")
+
+                elif event.action == "DIE_ACTION":
+                    print("DIE detected")
+
 #            if spoken_text:
 #                if "freeze" in spoken_text:
                     # Trigger attack action in the game
@@ -231,10 +252,12 @@ def main():
                     # Trigger defend action in the game
                     # Example: player.defend()
 #                    print(f"Voice detected: {event.phrase}")
-        #MOVE THE BOMBS
+
+        #Monitor if boms explode
         gameState.updatePoisitions()                        
 
-        # Send LED state to the LED strips  
+        # Send LED state to the LED strips
+        
                     
         # Fill the screen with sky blue
         screen.fill((135, 206, 250))

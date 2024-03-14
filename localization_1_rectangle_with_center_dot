@@ -16,10 +16,26 @@ def detect_neon_green(frame):
     # Find contours in the mask
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    # Draw bounding box around detected objects
+    # Initialize variables for bounding box and center dot
+    bounding_box = None
+    center = None
+
+    # Loop through contours
     for contour in contours:
+        # Get bounding box coordinates
         x, y, w, h = cv2.boundingRect(contour)
-        cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+        area = w * h
+
+        # Consider the largest bounding box
+        if bounding_box is None or area > bounding_box[2] * bounding_box[3]:
+            bounding_box = (x, y, w, h)
+            center = (x + w // 2, y + h // 2)
+
+    # Draw bounding box around the largest detected object
+    if bounding_box is not None:
+        x, y, w, h = bounding_box
+        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        cv2.circle(frame, center, 5, (0, 0, 255), -1)  # Draw dot at the center
 
     return frame
 
