@@ -13,6 +13,7 @@ import json
 import math
 import random
 import speech_recognition as sr
+import time
 
 # Import the pygame module
 import pygame
@@ -49,8 +50,10 @@ trigger_words_actions = {
 recognizer = sr.Recognizer()
 microphone = sr.Microphone()
 
+time.sleep(2)
 # speech function to be called
 def listen_and_convert():
+    time.sleep(2)
     # Loop indefinitely to continuously listen for speech input
     while True:
         with microphone as source:
@@ -101,7 +104,11 @@ class GameState:
                 TOWARDS_PLAYER1, TOWARDS_PLAYER2,
                 TOWARDS_PLAYER1, TOWARDS_PLAYER2,
                 TOWARDS_PLAYER1, TOWARDS_PLAYER2]
-            # Add more initialization as needed
+            
+            # Player Scores (lower is better) + 1 when you explode
+            cls._instance.player1_score = 0
+            cls._instance.player2_score = 0
+
         return cls._instance
 
     #this function is responsible for reverseing the bomb when a valid button press is registered
@@ -116,12 +123,19 @@ class GameState:
             self.bomb_positions[i] = self.bomb_positions[i] + \
                 self.bomb_directions[i]
 
-            if (self.bomb_positions[i] == 0 or self.bomb_positions[i] == LED_STRIP_LENGTH):
+            if (self.bomb_positions[i] <= 0 or self.bomb_positions[i] >= LED_STRIP_LENGTH):
                 # Explode!
+                # Update player scores
+                if(self.bomb_directions[i] == TOWARDS_PLAYER1):
+                    self.player1_score += 1
+                else:
+                    self.player2_score += 1
                 print(f"Bomb {i} exploded!")
                 # Reset bomb position
                 self.bomb_positions[i] = LED_STRIP_LENGTH/2
                 ledState.colors[i] = ["red" for _ in range(LED_STRIP_LENGTH)]
+            else:
+                ledState.colors[i][self.bomb_positions[i]] = "red"
 
 # This class is to manage the current positions of the leds. *********************************
 
@@ -134,7 +148,7 @@ class LEDState:
             cls._instance = super(LEDState, cls).__new__(
                 cls, *args, **kwargs)
 
-        # Initialize your singleton instance here
+            # Initialize your singleton instance here
             # Here we have an initialization of a 2D List, the first list is for the specific led strip
             # and the second list is for the index of the specific led in the strip
             # initially, set all leds to off a.k.a "black"
@@ -153,14 +167,6 @@ class LEDState:
 
             # Ensure the position is within the LED strip length
             pixel = max(0, min(pixel, strip_length - 1))
-
-            # Set all LEDs to "black" in the stip
-            self._instance.colors[strip_index] = [
-                "black" for _ in range(strip_length)]
-
-            # Set the corresponding LED to a different color (e.g., "red")
-            led_color = "red"
-            self._instance.colors[strip_index][pixel] = led_color
 
             # Update the dictionary with LED states
             led_state_dict[f"LED_Strip_{strip_index}"] = {
@@ -236,6 +242,7 @@ def main():
 
     # Load all our sound files
     # Sound sources: Jon Fincher
+    slap_sound = pygame.mixer.Sound("sounds/karate-chop.mp3")
     # move_up_sound = pygame.mixer.Sound("Rising_putter.ogg")
     # move_down_sound = pygame.mixer.Sound("Falling_putter.ogg")
     # collision_sound = pygame.mixer.Sound("Collision.ogg")
@@ -266,10 +273,10 @@ def main():
 
             elif event.type == SLAP_1:
                 print("SLAP 1 detected")
-
+                slap_sound.play()
             elif event.type == SLAP_2:
                 print("SLAP 2 detected")
-
+                slap_sound.play()
             elif event.type == VOICE_EVENT:
                 print("Voice detected")
                 if(event.action == "STOP_ACTION"):
