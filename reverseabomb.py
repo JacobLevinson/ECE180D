@@ -239,6 +239,7 @@ def main():
 
     # Load all our sound files
     # Sound sources: Jon Fincher
+    slap_sound = pygame.mixer.Sound("sounds/karate-chop.mp3")
     # move_up_sound = pygame.mixer.Sound("Rising_putter.ogg")
     # move_down_sound = pygame.mixer.Sound("Falling_putter.ogg")
     # collision_sound = pygame.mixer.Sound("Collision.ogg")
@@ -269,10 +270,10 @@ def main():
 
             elif event.type == SLAP_1:
                 print("SLAP 1 detected")
-
+                slap_sound.play()
             elif event.type == SLAP_2:
                 print("SLAP 2 detected")
-
+                slap_sound.play()
             elif event.type == VOICE_EVENT:
                 print("Voice detected")
                 if(event.action == "STOP_ACTION"):
