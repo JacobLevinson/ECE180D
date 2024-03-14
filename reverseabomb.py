@@ -122,6 +122,8 @@ class GameState:
                 # Reset bomb position
                 self.bomb_positions[i] = LED_STRIP_LENGTH/2
                 ledState.colors[i] = ["red" for _ in range(LED_STRIP_LENGTH)]
+            else:
+                ledState.colors[i][self.bomb_positions[i]] = "red"
 
 # This class is to manage the current positions of the leds. *********************************
 
@@ -134,7 +136,7 @@ class LEDState:
             cls._instance = super(LEDState, cls).__new__(
                 cls, *args, **kwargs)
 
-        # Initialize your singleton instance here
+            # Initialize your singleton instance here
             # Here we have an initialization of a 2D List, the first list is for the specific led strip
             # and the second list is for the index of the specific led in the strip
             # initially, set all leds to off a.k.a "black"
@@ -153,14 +155,6 @@ class LEDState:
 
             # Ensure the position is within the LED strip length
             pixel = max(0, min(pixel, strip_length - 1))
-
-            # Set all LEDs to "black" in the stip
-            self._instance.colors[strip_index] = [
-                "black" for _ in range(strip_length)]
-
-            # Set the corresponding LED to a different color (e.g., "red")
-            led_color = "red"
-            self._instance.colors[strip_index][pixel] = led_color
 
             # Update the dictionary with LED states
             led_state_dict[f"LED_Strip_{strip_index}"] = {
