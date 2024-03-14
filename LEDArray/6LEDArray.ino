@@ -72,16 +72,37 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
   Serial.println();
 
-  deserializeJson(doc, payload);
+  deserializeJson(doc, payload); //read the JSON file
 
-  int arrayIndex = doc["arrayIndex"];
-  int newPosition = doc["position"];
+  //now with the read data, update the LEDS for the gameboard
+  for (int stripIndex = 0; stripIndex < NUM_LED_ARRAYS; stripIndex++) 
+  {
+    const char* stripKey = ("LED_Strip_" + String(stripIndex)).c_str();
+    const JsonArray& pixels = doc[stripKey]["pixels"];
 
-  for (int i = 0; i < NUM_LEDS_PER_ARRAY; i++) {
-    leds[arrayIndex][i] = CRGB::Black;
+    for (int pixelIndex = 0; pixelIndex < pixels.size(); pixelIndex++) 
+    {
+      const char* color = pixels[pixelIndex];
+      CRGB ledColor;
+
+      if (strcmp(color, "black") == 0) 
+      {
+        ledColor = CRGB::Black;
+      } 
+      else if (strcmp(color, "red") == 0) 
+      {
+        ledColor = CRGB::Red;
+      } 
+      else 
+      {
+        // Handle other colors if needed
+        ledColor = CRGB::Black;
+      }
+
+      leds[stripIndex][pixelIndex] = ledColor;
+    }
   }
 
-  leds[arrayIndex][newPosition] = CRGB::Red;
   FastLED.show();
 }
 
