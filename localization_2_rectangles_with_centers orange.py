@@ -1,19 +1,19 @@
-# Kind of glitchy with just one object
-
 import cv2
 import numpy as np
 
-# Function to detect neon green objects
-def detect_neon_green(frame):
+#Orange works well
+
+# Function to detect regular orange objects
+def detect_orange(frame):
     # Convert frame from BGR to HSV color space
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-    # Define range of neon green color in HSV
-    lower_green = np.array([60, 100, 100])
-    upper_green = np.array([80, 255, 255])
+    # Define range of regular orange color in HSV
+    lower_orange = np.array([5, 100, 100])  # Adjust values as needed
+    upper_orange = np.array([20, 255, 255])  # Adjust values as needed
 
-    # Threshold the HSV image to get only neon green colors
-    mask = cv2.inRange(hsv, lower_green, upper_green)
+    # Threshold the HSV image to get only regular orange colors
+    mask = cv2.inRange(hsv, lower_orange, upper_orange)
 
     # Find contours in the mask
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -45,11 +45,11 @@ def main():
         if not ret:
             break
 
-        # Call function to detect neon green objects
-        result = detect_neon_green(frame)
+        # Call function to detect regular orange objects
+        result = detect_orange(frame)
 
         # Display the result
-        cv2.imshow('Neon Green Detection', result)
+        cv2.imshow('Regular Orange Detection', result)
 
         # Exit loop if 'q' is pressed
         if cv2.waitKey(1) & 0xFF == ord('q'):

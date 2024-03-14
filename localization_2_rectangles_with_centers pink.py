@@ -1,19 +1,19 @@
-# Kind of glitchy with just one object
-
 import cv2
 import numpy as np
 
-# Function to detect neon green objects
-def detect_neon_green(frame):
+# Pink doesn't seem to work well 
+
+# Function to detect pink objects
+def detect_pink(frame):
     # Convert frame from BGR to HSV color space
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-    # Define range of neon green color in HSV
-    lower_green = np.array([60, 100, 100])
-    upper_green = np.array([80, 255, 255])
+    # Define range of pink color in HSV
+    lower_pink = np.array([150, 50, 50])  # Adjust values as needed
+    upper_pink = np.array([170, 255, 255])  # Adjust values as needed
 
-    # Threshold the HSV image to get only neon green colors
-    mask = cv2.inRange(hsv, lower_green, upper_green)
+    # Threshold the HSV image to get only pink colors
+    mask = cv2.inRange(hsv, lower_pink, upper_pink)
 
     # Find contours in the mask
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -45,11 +45,11 @@ def main():
         if not ret:
             break
 
-        # Call function to detect neon green objects
-        result = detect_neon_green(frame)
+        # Call function to detect pink objects
+        result = detect_pink(frame)
 
         # Display the result
-        cv2.imshow('Neon Green Detection', result)
+        cv2.imshow('Pink Detection', result)
 
         # Exit loop if 'q' is pressed
         if cv2.waitKey(1) & 0xFF == ord('q'):
