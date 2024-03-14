@@ -143,7 +143,7 @@ class GameState:
                 
                 
 
-# This class is to manage the current positions of the leds. *********************************
+# This class is to manage the current positions of gthe leds. *********************************
 class LEDState:
     _instance = None
 
@@ -315,7 +315,7 @@ def main():
         # DEMO SECTION: Just show LEDs in pygame window
         for i in range(0, LED_STRIP_COUNT):
             for j in range(0, LED_STRIP_LENGTH):
-                pygame.draw.rect(screen, ledState.colors[i][j], [j*10, i*10, 10, 10])
+                pygame.draw.rect(screen, ledState.colors[i][j], [j*10, i*15, 10, 15])
         # Fill the screen with sky blue
         pygame.display.flip()
         # Ensure we maintain a 30 frames per second rate
