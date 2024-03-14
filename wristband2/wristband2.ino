@@ -59,7 +59,7 @@ const char *password = "wifi1234";
 
 const char mqtt_server[] = "mqtt.eclipseprojects.io";
 
-const char publishTopic[] = "ece180d/team3/reverseabomb/wristband1";
+const char publishTopic[] = "ece180d/team3/reverseabomb/wristband2";
 
 WiFiClient wifiClient;
 
@@ -197,7 +197,7 @@ void loop()
     if (sqrt(acc_data.acc_x * acc_data.acc_x + acc_data.acc_y * acc_data.acc_y + acc_data.acc_z * acc_data.acc_z) > 30.0 && acc_data.acc_z > 25)
     {
       digitalWrite(LED_BUILTIN, HIGH);
-      mqtt.publish(publishTopic, "SLAP1");
+      mqtt.publish(publishTopic, "SLAP2");
       Serial.println(sqrt(acc_data.acc_x * acc_data.acc_x + acc_data.acc_y * acc_data.acc_y + acc_data.acc_z * acc_data.acc_z));
       Serial.println(acc_data.acc_z);
       Serial.println();

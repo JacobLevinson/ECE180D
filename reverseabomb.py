@@ -77,7 +77,9 @@ def listen_and_convert():
         except sr.RequestError as e:
             print("Could not request results; {0}".format(e))
 
-
+        
+        
+#GameState class handles the gameplay *********************************************************
 
 class GameState:
     _instance = None
@@ -102,7 +104,11 @@ class GameState:
                 TOWARDS_PLAYER1, TOWARDS_PLAYER2,
                 TOWARDS_PLAYER1, TOWARDS_PLAYER2,
                 TOWARDS_PLAYER1, TOWARDS_PLAYER2]
-            # Add more initialization as needed
+            
+            # Player Scores (lower is better) + 1 when you explode
+            cls._instance.player1_score = 0
+            cls._instance.player2_score = 0
+
         return cls._instance
 
     #this function is responsible for reverseing the bomb when a valid button press is registered
@@ -111,16 +117,70 @@ class GameState:
            or ((self.bomb_directions[bomb_id] == TOWARDS_PLAYER2) and player_id == 2)):
             # Reverse the direction of the bomb
             self.bomb_directions[bomb_id] = -1 * self.bomb_directions[bomb_id]
-            
-    #this function is used to update the positions of the leds when a bomb explodes. Reset the bomb to middle of field
-    def updatePoisitions(self):
+
+    def updatePoisitions(self, ledState):
         for i in range(0, LED_STRIP_COUNT):
-            self.bomb_positions[i] = self.bomb_positions[i] + self.bomb_directions[i]
-            if(self.bomb_positions[i] == 0 or self.bomb_positions[i] == LED_STRIP_LENGTH):
+            self.bomb_positions[i] = self.bomb_positions[i] + \
+                self.bomb_directions[i]
+
+            if (self.bomb_positions[i] <= 0 or self.bomb_positions[i] >= LED_STRIP_LENGTH):
                 # Explode!
+                # Update player scores
+                if(self.bomb_directions[i] == TOWARDS_PLAYER1):
+                    self.player1_score += 1
+                else:
+                    self.player2_score += 1
                 print(f"Bomb {i} exploded!")
                 # Reset bomb position
                 self.bomb_positions[i] = LED_STRIP_LENGTH/2
+                ledState.colors[i] = ["red" for _ in range(LED_STRIP_LENGTH)]
+            else:
+                ledState.colors[i][self.bomb_positions[i]] = "red"
+
+# This class is to manage the current positions of the leds. *********************************
+
+
+class LEDState:
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super(LEDState, cls).__new__(
+                cls, *args, **kwargs)
+
+            # Initialize your singleton instance here
+            # Here we have an initialization of a 2D List, the first list is for the specific led strip
+            # and the second list is for the index of the specific led in the strip
+            # initially, set all leds to off a.k.a "black"
+            cls._instance.colors = [
+                ["black" for _ in range(LED_STRIP_LENGTH)] for _ in range(LED_STRIP_COUNT)]
+        return cls._instance
+
+    def send_LED_state(self, client, gameState, strip_length, strip_count):
+        # Create a dictionary to store LED states for each strip
+        led_state_dict = {}
+
+        # Set LEDs at bomb positions to a different color (e.g., "red")
+        for strip_index, pixel in enumerate(gameState.bomb_positions):
+            # Convert position to an integer (assuming it's a float)
+            pixel = int(pixel)
+
+            # Ensure the position is within the LED strip length
+            pixel = max(0, min(pixel, strip_length - 1))
+
+            # Update the dictionary with LED states
+            led_state_dict[f"LED_Strip_{strip_index}"] = {
+                "pixels": self._instance.colors[strip_index]}
+            # Outputs in the form of:
+            #   "LED_Strip_0": {"pixels": ["black", "black", ...]},
+            #   "LED_Strip_1": {"pixels": ["black", "black", ...]},
+
+        # Convert the dictionary to a JSON string
+        led_state_json = json.dumps(led_state_dict, indent=2)
+
+        # Publish the LED state to the LED controller topic
+        client.publish("ece180d/team3/reverseabomb/ledcontroller",
+                       led_state_json, qos=1)
 
 
 
@@ -129,7 +189,6 @@ def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
     client.subscribe("ece180d/team3/reverseabomb/wristband1", qos=1)
     client.subscribe("ece180d/team3/reverseabomb/wristband2", qos=1)
-    client.publish("ece180d/team3/reverseabomb/ledcontroller", qos=1) #publish LED state
 
 
 def on_message(client, userdata, msg):
@@ -183,6 +242,7 @@ def main():
 
     # Load all our sound files
     # Sound sources: Jon Fincher
+    slap_sound = pygame.mixer.Sound("sounds/karate-chop.mp3")
     # move_up_sound = pygame.mixer.Sound("Rising_putter.ogg")
     # move_down_sound = pygame.mixer.Sound("Falling_putter.ogg")
     # collision_sound = pygame.mixer.Sound("Collision.ogg")
@@ -213,10 +273,10 @@ def main():
 
             elif event.type == SLAP_1:
                 print("SLAP 1 detected")
-
+                slap_sound.play()
             elif event.type == SLAP_2:
                 print("SLAP 2 detected")
-
+                slap_sound.play()
             elif event.type == VOICE_EVENT:
                 print("Voice detected")
                 if(event.action == "STOP_ACTION"):
@@ -235,16 +295,8 @@ def main():
                 elif event.action == "DIE_ACTION":
                     print("DIE detected")
 
-#            if spoken_text:
-#                if "freeze" in spoken_text:
-                    # Trigger attack action in the game
-                    # Example: player.attack()
-#                elif "defend" in spoken_text:
-                    # Trigger defend action in the game
-                    # Example: player.defend()
-#                    print(f"Voice detected: {event.phrase}")
 
-        #Monitor if boms explode
+        #Monitor if bombs explode
         gameState.updatePoisitions()                        
 
         # Send LED state to the LED strips

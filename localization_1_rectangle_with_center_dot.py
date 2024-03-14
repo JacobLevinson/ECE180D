@@ -1,6 +1,8 @@
 import cv2
 import numpy as np
 
+# 1 bounding box
+
 # Function to detect neon green objects
 def detect_neon_green(frame):
     # Convert frame from BGR to HSV color space
