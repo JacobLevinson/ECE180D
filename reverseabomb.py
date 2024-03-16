@@ -50,7 +50,6 @@ trigger_words_actions = {
 recognizer = sr.Recognizer()
 microphone = sr.Microphone()
 
-time.sleep(2)
 # speech function to be called
 def listen_and_convert():
     time.sleep(2)
