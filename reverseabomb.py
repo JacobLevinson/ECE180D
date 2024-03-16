@@ -38,45 +38,55 @@ SLAP_1 = pygame.USEREVENT + 1
 SLAP_2 = pygame.USEREVENT + 2
 VOICE_EVENT = pygame.USEREVENT + 3
 
+def speech_recognition_function():
+    freeze_words = ["FREEZE", "BREEZE", "ARIES", "FRIES", "JEWELRIES", "PLEASE", "REESE", "TREES", "THREE", "PRAISE", "PRICE", "BRIEF", "FREE", "RACE"]
+    start_words = ["START", "STARKS", "STARDUST"]
+    stop_words = ["STOP"]
+    reverse_words = ["REVERSE", "BROTHERS", "RIVERS"]
+    die_words = ["DIE", "BYE", "DIVE"]
 
-# Define the lists of trigger words and their associated actions
-trigger_words_actions = {
-    "freeze": (["freeze", "breeze", "aries", "fries", "jewelries", "please", "reese", "trees", "three", "praise", "price", "brief", "free", "race"], "FREEZE_ACTION"),
-    "start": (["start", "starks", "stardust"], "START_ACTION"),
-    "stop": (["stop"], "STOP_ACTION"),
-    "reverse": (["reverse", "brothers", "rivers"], "REVERSE_ACTION"),
-    "die": (["die", "bye", "dive"], "DIE_ACTION")
-}
-
-# Initialize the recognizer and microphone
-recognizer = sr.Recognizer()
-microphone = sr.Microphone()
-
-# speech function to be called
-def listen_and_convert():
+    recognizer = sr.Recognizer()
+    recognizer.dynamic_energy_threshold = True
+    recognizer.energy_threshold = 300
+    recognizer.pause_threshold = 0.5
+    
     time.sleep(2)
-    # Loop indefinitely to continuously listen for speech input
     while True:
-        with microphone as source:
-            print("Listening for trigger words...")
-            audio_data = recognizer.listen(source)
-        
-        try:
-            # Use PocketSphinx for faster recognition
-            recognized_text = recognizer.recognize_sphinx(audio_data, keyword_entries=[(word, 1.0) for word in sum([words[0] for words in trigger_words_actions.values()], [])])
-            recognized_text_upper = recognized_text.upper()  # Convert recognized text to uppercase
-            print("Recognized:", recognized_text_upper)
-            
-            # Check if any trigger word is detected
-            for word_list, action in trigger_words_actions.values():
-                detected_words = [word for word in word_list if word in recognized_text_upper]
-                if detected_words:
-                    pygame.event.post(pygame.event.Event(VOICE_EVENT, action=action))  # Generate custom event with action
+        with sr.Microphone() as source:
+            try:
+                print("Say something!")
+                recognizer.adjust_for_ambient_noise(source, duration=0.5)
 
-        except sr.UnknownValueError:
-            print("Sorry, could not understand audio.")
-        except sr.RequestError as e:
-            print("Could not request results; {0}".format(e))
+                audio = recognizer.listen(source)
+                print("Got it! Now to recognize it...")
+
+                audio = recognizer.recognize_google(audio, show_all=True)
+
+                if audio and 'alternative' in audio:
+                    speech_text = audio['alternative'][0]['transcript'].upper()
+                    print(f"You said: {speech_text}")
+
+                    if any(word in speech_text for word in freeze_words):
+                        print("Freeze is recognized!")
+                        pygame.event.post(pygame.event.Event(VOICE_EVENT, command="freeze"))
+                    if any(word in speech_text for word in start_words):
+                        print("Start is recognized!")
+                        pygame.event.post(pygame.event.Event(VOICE_EVENT, command="start"))
+                    if any(word in speech_text for word in reverse_words):
+                        print("Reverse is recognized!")
+                        pygame.event.post(pygame.event.Event(VOICE_EVENT, command="reverse"))
+                    if any(word in speech_text for word in die_words):
+                        print("Die is recognized!")
+                        pygame.event.post(pygame.event.Event(VOICE_EVENT, command="die"))
+                    if any(word in speech_text for word in stop_words):
+                        print("Stopping the game")
+                        pygame.event.post(pygame.event.Event(VOICE_EVENT, command="stop"))
+                        break
+
+            except sr.UnknownValueError:
+                print("Google Web Speech API could not understand audio")
+            except sr.RequestError as e:
+                print(f"Could not request results from Google Web Speech API; {e}")
 
         
         
@@ -287,22 +297,22 @@ def main():
                 slap_sound.play()
                 gameState.reverse_bomb(2, 0)
             elif event.type == VOICE_EVENT:
-                print("Voice detected")
-                if(event.action == "STOP_ACTION"):
-                    print("STOP detected")
-                    running = False
-                elif(event.action == "FREEZE_ACTION"):
-                    print("FREEZE detected")
-                    if(gameState.powerup_state == "NONE"):
-                        gameState.powerup_state = "FREEZE"
-                elif event.action == "START_ACTION":
-                    print("START detected")
-
-                elif event.action == "REVERSE_ACTION":
-                    print("REVERSE detected")
-
-                elif event.action == "DIE_ACTION":
-                    print("DIE detected")
+                # Handle voice command events
+                if event.command == "freeze":
+                    # Handle freeze command
+                    pass
+                elif event.command == "start":
+                    # Handle start command
+                    pass
+                elif event.command == "reverse":
+                    # Handle reverse command
+                    pass
+                elif event.command == "die":
+                    # Handle die command
+                    pass
+                elif event.command == "stop":
+                    # Handle stop command
+                    pass
 
 
         #Monitor if bombs explode
