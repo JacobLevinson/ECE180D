@@ -25,6 +25,8 @@ import random
 SCREEN_WIDTH = 960
 SCREEN_HEIGHT = 720
 
+PLAYER1_ROW = 0
+PLAYER2_ROW = 0
 # Physical Paremeters
 LED_STRIP_LENGTH = 90  # Number of LEDs in each strip
 LED_STRIP_COUNT = 6  # Number of LED strips
@@ -116,6 +118,8 @@ class GameState:
            or ((self.bomb_directions[bomb_id] == TOWARDS_PLAYER2) and player_id == 2)):
             # Reverse the direction of the bomb
             self.bomb_directions[bomb_id] = -1 * self.bomb_directions[bomb_id]
+        else:
+            print(f"Invalid reverse bomb request from player {player_id} for bomb {bomb_id}")
 
     def updatePoisitions(self, ledState):
         for i in range(0, LED_STRIP_COUNT):
@@ -134,11 +138,11 @@ class GameState:
                 self.bomb_positions[i] = LED_STRIP_LENGTH/2
                 ledState.colors[i] = ["red" for _ in range(LED_STRIP_LENGTH)]
             else:
-                ledState.colors[i][self.bomb_positions[i]] = "red"
+                ledState.colors[i][int(self.bomb_positions[i])] = "red"
+                
+                
 
-# This class is to manage the current positions of the leds. *********************************
-
-
+# This class is to manage the current positions of gthe leds. *********************************
 class LEDState:
     _instance = None
 
@@ -183,7 +187,7 @@ class LEDState:
 
 
 
-
+#functions for the client to puslish and subscribe data ************************
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
     client.subscribe("ece180d/team3/reverseabomb/wristband1", qos=1)
@@ -256,6 +260,10 @@ def main():
 
     # Our main loop
     while running:
+        #Reset LED state
+        for i in range(0, LED_STRIP_COUNT):
+            ledState.colors[i] = ["black" for _ in range(LED_STRIP_LENGTH)]
+
         # xpos_1, ypos_1, xpos_2, ypos_2 = get_position() # get position of each player
 
         # Look at every event in the queue
@@ -273,9 +281,11 @@ def main():
             elif event.type == SLAP_1:
                 print("SLAP 1 detected")
                 slap_sound.play()
+                gameState.reverse_bomb(1, 0)
             elif event.type == SLAP_2:
                 print("SLAP 2 detected")
                 slap_sound.play()
+                gameState.reverse_bomb(2, 0)
             elif event.type == VOICE_EVENT:
                 print("Voice detected")
                 if(event.action == "STOP_ACTION"):
@@ -296,13 +306,16 @@ def main():
 
 
         #Monitor if bombs explode
-        gameState.updatePoisitions()                        
+        gameState.updatePoisitions(ledState)
 
         # Send LED state to the LED strips
-        
+        ledState.send_LED_state(client, gameState, LED_STRIP_LENGTH, LED_STRIP_COUNT)
                     
+        # DEMO SECTION: Just show LEDs in pygame window
+        for i in range(0, LED_STRIP_COUNT):
+            for j in range(0, LED_STRIP_LENGTH):
+                pygame.draw.rect(screen, ledState.colors[i][j], [j*10, i*15, 10, 15])
         # Fill the screen with sky blue
-        screen.fill((135, 206, 250))
         pygame.display.flip()
         # Ensure we maintain a 30 frames per second rate
         clock.tick(10)

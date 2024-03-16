@@ -1,3 +1,5 @@
+# Kind of glitchy with just one object
+
 import cv2
 import numpy as np
 
@@ -8,7 +10,7 @@ def detect_neon_green(frame):
 
     # Define range of neon green color in HSV
     lower_green = np.array([60, 100, 100])
-    upper_green = np.array([100, 255, 255])
+    upper_green = np.array([80, 255, 255])
 
     # Threshold the HSV image to get only neon green colors
     mask = cv2.inRange(hsv, lower_green, upper_green)
@@ -16,10 +18,19 @@ def detect_neon_green(frame):
     # Find contours in the mask
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    # Draw bounding box around detected objects
+    # Sort contours by area in descending order
+    contours = sorted(contours, key=cv2.contourArea, reverse=True)[:2]
+
+    # Draw bounding boxes around the two largest detected objects
     for contour in contours:
+        # Get bounding box coordinates
         x, y, w, h = cv2.boundingRect(contour)
-        cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+        # Calculate center coordinates
+        center = (x + w // 2, y + h // 2)
+        # Draw dot at the center
+        cv2.circle(frame, center, 5, (0, 0, 255), -1)
 
     return frame
 

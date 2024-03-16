@@ -49,11 +49,11 @@ static Acc_senseData acc_data;
 
 static Gyr_senseData gyr_data;
 
-#define TOKEN "j"
+#define TOKEN "l"
 
-#define DEVICEID "j"
+#define DEVICEID "l"
 
-const char *ssid = "Jacob IPhone";
+const char *ssid = "Laura";
 
 const char *password = "wifi1234";
 
