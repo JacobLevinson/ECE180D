@@ -27,12 +27,13 @@ def detect_colors(frame):
     mask_green = cv2.inRange(hsv, lower_green, upper_green)
 
     # Threshold the HSV image to get only red colors
-    mask_red1 = cv2.inRange(hsv, lower_red1, upper_red1)
-    mask_red2 = cv2.inRange(hsv, lower_red2, upper_red2)
-    mask_red = cv2.bitwise_or(mask_red1, mask_red2)
+    # mask_red1 = cv2.inRange(hsv, lower_red1, upper_red1)
+    # mask_red2 = cv2.inRange(hsv, lower_red2, upper_red2)
+    # mask_red = cv2.bitwise_or(mask_red1, mask_red2)
 
     # Combine the masks
-    combined_mask = cv2.bitwise_or(mask_pink, mask_green, mask_red)
+    # combined_mask = cv2.bitwise_or(mask_pink, mask_green, mask_red)
+    combined_mask = cv2.bitwise_or(mask_pink, mask_green)
 
     # Find contours in the combined mask
     contours, _ = cv2.findContours(combined_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
