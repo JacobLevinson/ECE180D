@@ -76,11 +76,11 @@ def main():
         if not ret:
             break
 
-        # Call function to detect pink, green, and red objects
+        # Call function to detect pink and green objects
         result = detect_colors(frame)
 
         # Display the result
-        cv2.imshow('Pink, Green, and Red Detection', result)
+        cv2.imshow('Pink and Green Detection', result)
 
         # Exit loop if 'q' is pressed
         if cv2.waitKey(1) & 0xFF == ord('q'):
