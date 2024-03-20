@@ -175,9 +175,10 @@ def speech_recognition_function():
 
 if __name__ == "__main__":
 
-    freeze_words = ["FREEZE", "BREEZE", "ARIES", "FRIES", "JEWELRIES", "PLEASE", "REESE", "TREES", "THREE", "PRAISE", "PRICE", "BRIEF", "FREE", "RACE"]
+    freeze_words = ["FREEZE", "BREEZE", "ARIES", "FRIES", "JEWELRIES", "PLEASE", "REESE", "TREES", "THREE",
+                     "PRAISE", "PRICE", "BRIEF", "FREE", "RACE"]
     start_words = ["START","STARKS","STARDUST"]
-    stop_words = ["STOP"]
+    stop_words = ["STOP", "STAP"]
     reverse_words = ["REVERSE", "BROTHERS", "RIVERS"]
     die_words = ["DIE", "BYE", "DIVE"]
 
@@ -190,17 +191,18 @@ if __name__ == "__main__":
 
         with sr.Microphone() as source:
             print("Say something!")
-            recognizer.adjust_for_ambient_noise(source, duration=0.5)  # Calibrate noise level
+            recognizer.adjust_for_ambient_noise(source, duration=0.5)  # This line calibrates the noise level by listening for half a second to capture ambient noise. 
 
 
-            audio = recognizer.listen(source)
+            audio = recognizer.listen(source) # capturing the person's audio
             print("Got it! Now to recognize it...")
 
             try:
-                audio = recognizer.recognize_google(audio, show_all=True)
+                audio = recognizer.recognize_google(audio, show_all=True) #  This line performs speech recognition using Google Speech Recognition. It sends the captured audio data to Google's servers for processing and attempts to recognize the speech. 
+                # The show_all=True parameter is used to request additional recognition results, such as alternative interpretations of the speech.
 
-                if audio and 'alternative' in audio:
-                    speech_text = audio['alternative'][0]['transcript'].upper() 
+                if audio and 'alternative' in audio: # This line checks if the recognition result is not empty and if alternative interpretations are available.
+                    speech_text = audio['alternative'][0]['transcript'].upper() #  This line extracts the recognized text from the recognition result. It accesses the first alternative interpretation (index 0) and converts the text to uppercase using the upper() method.
                     print(f"You said: {speech_text}")
 
                     if any(word in speech_text for word in freeze_words):
