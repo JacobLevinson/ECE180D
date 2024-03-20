@@ -14,25 +14,15 @@ def detect_colors(frame):
     lower_green = np.array([60, 100, 100])  # Adjust values as needed
     upper_green = np.array([80, 255, 255])  # Adjust values as needed
     
-    # Define range of red color in HSV
-    lower_red1 = np.array([0, 100, 100])  # Adjust values as needed
-    upper_red1 = np.array([10, 255, 255])  # Adjust values as needed
-    lower_red2 = np.array([170, 100, 100])  # Adjust values as needed
-    upper_red2 = np.array([180, 255, 255])  # Adjust values as needed
-
     # Threshold the HSV image to get only pink colors
     mask_pink = cv2.inRange(hsv, lower_pink, upper_pink)
 
     # Threshold the HSV image to get only green colors
     mask_green = cv2.inRange(hsv, lower_green, upper_green)
 
-    # Threshold the HSV image to get only red colors
-    # mask_red1 = cv2.inRange(hsv, lower_red1, upper_red1)
-    # mask_red2 = cv2.inRange(hsv, lower_red2, upper_red2)
-    # mask_red = cv2.bitwise_or(mask_red1, mask_red2)
 
     # Combine the masks
-    # combined_mask = cv2.bitwise_or(mask_pink, mask_green, mask_red)
+    # combined_mask = cv2.bitwise_and(mask_pink, mask_green)
     combined_mask = cv2.bitwise_or(mask_pink, mask_green)
 
     # Find contours in the combined mask
