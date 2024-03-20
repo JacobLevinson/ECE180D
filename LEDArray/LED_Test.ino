@@ -25,6 +25,12 @@ PubSubClient mqtt(wifiClient);
 // strips you will need multiple arrays or multi-dimensional arrays
 CRGB leds[NUM_LEDS];
 
+// unsigned long lastUpdateTime = 0; // Variable to store the timestamp of the last update
+
+// // Define constants for reconnection
+// const unsigned long RECONNECT_INTERVAL = 60000; // 1 minute
+// unsigned long lastUpdate = 0;
+
 // Function to connect to WiFi
 void setup_wifi() {
   delay(10);
@@ -62,6 +68,8 @@ void reconnect() {
 
 // Callback function to handle incoming MQTT messages
 void callback(char* topic, byte* payload, unsigned int length) {
+  // // Update the last update time when a message is received
+  // lastUpdateTime = millis();
   Serial.print("Message arrived in topic: ");
   Serial.println(topic);
 
@@ -85,6 +93,9 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
   // Show the leds (only one of which is set to white, from above)
   FastLED.show();
+
+  // // Update the last update time
+  // lastUpdate = millis();
 }
 
 void setup() {
@@ -97,8 +108,18 @@ void setup() {
 }
 
 void loop() {
+  // Check if MQTT client is connected
   if (!mqtt.connected()) {
+    // If not connected, attempt to reconnect
     reconnect();
   }
+  
+  // Check for MQTT messages and handle callbacks
   mqtt.loop();
+
+  // // Check if there has been an update within the last 10 seconds
+  // if (millis() - lastUpdateTime > 10000) { // Adjust the timeout period as needed
+  //   Serial.println("No updates received, reconnecting...");
+  //   reconnect(); // Attempt to reconnect if no updates received within the timeout period
+  // }
 }
