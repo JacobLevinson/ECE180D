@@ -15,17 +15,26 @@ client = mqtt.Client()
 def on_connect(client, userdata, flags, rc):
     print("Connected to MQTT broker with result code " + str(rc))
 
+def on_disconnect(client, userdata, rc):
+    if rc != 0:
+        print("Unexpected disconnection. Reconnecting...")
+        print("Reason code:", rc)
+        client.reconnect()
+
 def send_led_state(client, led_position):
     # Convert the LED positions list to a comma-separated string
     led_state_str = ''.join(led_position)
     
-    # Publish the LED state to the LED controller topic
-    client.publish(led_controller_topic, led_state_str, qos=1)
+    # Publish the LED state to the LED controller topic with QoS 0
+    client.publish(led_controller_topic, led_state_str, qos=0)
     print("LED state published to the LED controller topic.")
+    print("LED positions:", led_position)  # Print LED positions for debugging
+
 
 def main():
-    # Set MQTT callback
+    # Set MQTT callbacks
     client.on_connect = on_connect
+    client.on_disconnect = on_disconnect
 
     # Connect to MQTT broker
     client.connect(mqtt_server, 1883)
