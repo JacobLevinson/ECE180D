@@ -40,6 +40,15 @@ SLAP_2 = pygame.USEREVENT + 2
 VOICE_EVENT = pygame.USEREVENT + 3
 
 
+def clear_queue(queue):
+    while True:
+        try:
+            # Try to get an item from the queue without blocking
+            queue.get_nowait()
+        except multiprocessing.queues.Empty:
+            # If the queue is empty, break the loop
+            break
+
 def speech_recognition_function(event_queue):
     freeze_words = ["FREEZE", "BREEZE", "ARIES", "FRIES", "JEWELRIES", "PLEASE",
                     "REESE", "TREES", "THREE", "PRAISE", "PRICE", "BRIEF", "FREE", "RACE"]
@@ -269,6 +278,7 @@ def main():
 
     # Setup for speech reconition
     event_queue = multiprocessing.Queue()
+    clear_queue(event_queue)
     speech_process = multiprocessing.Process(
         target=speech_recognition_function, args=(event_queue,))
     speech_process.start()
@@ -286,7 +296,8 @@ def main():
         # Check for new speech recognition events
         while not event_queue.empty():
             message = event_queue.get()
-            if message['command'] in ['freeze', 'start', 'reverse', 'die', 'stop']:
+            print(f"Received q message: {message}")
+            if message['command'] in ['FREEZE', 'START', 'REVERSE', 'DIE', 'STOP']:
                 pygame.event.post(pygame.event.Event(
                     VOICE_EVENT, command=message['command']))
 
@@ -314,19 +325,19 @@ def main():
                 gameState.reverse_bomb(2, 0)
             elif event.type == VOICE_EVENT:
                 # Handle voice command events
-                if event.command == "freeze":
+                if event.command == "FREEZE":
                     # Handle freeze command
                     print("FREEZE EVENT DETECTED")
-                elif event.command == "start":
+                elif event.command == "START":
                     # Handle start command
                     print("START EVENT DETECTED")
-                elif event.command == "reverse":
+                elif event.command == "REVERSE":
                     # Handle reverse command
                     print("REVERSE EVENT DETECTED")
-                elif event.command == "die":
+                elif event.command == "DIE":
                     # Handle die command
                     print("DIE EVENT DETECTED")
-                elif event.command == "stop":
+                elif event.command == "STOP":
                     # Handle stop command
                     print("STOP EVENT DETECTED")
                     running = False
