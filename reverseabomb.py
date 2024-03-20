@@ -14,6 +14,7 @@ import math
 import random
 import speech_recognition as sr
 import time
+import multiprocessing
 
 # Import the pygame module
 import pygame
@@ -39,49 +40,70 @@ SLAP_2 = pygame.USEREVENT + 2
 VOICE_EVENT = pygame.USEREVENT + 3
 
 
-# Define the lists of trigger words and their associated actions
-trigger_words_actions = {
-    "freeze": (["freeze", "breeze", "aries", "fries", "jewelries", "please", "reese", "trees", "three", "praise", "price", "brief", "free", "race"], "FREEZE_ACTION"),
-    "start": (["start", "starks", "stardust"], "START_ACTION"),
-    "stop": (["stop"], "STOP_ACTION"),
-    "reverse": (["reverse", "brothers", "rivers"], "REVERSE_ACTION"),
-    "die": (["die", "bye", "dive"], "DIE_ACTION")
-}
-
-# Initialize the recognizer and microphone
-recognizer = sr.Recognizer()
-microphone = sr.Microphone()
-
-time.sleep(2)
-# speech function to be called
-def listen_and_convert():
-    time.sleep(2)
-    # Loop indefinitely to continuously listen for speech input
+def clear_queue(queue):
     while True:
-        with microphone as source:
-            print("Listening for trigger words...")
-            audio_data = recognizer.listen(source)
-        
         try:
-            # Use PocketSphinx for faster recognition
-            recognized_text = recognizer.recognize_sphinx(audio_data, keyword_entries=[(word, 1.0) for word in sum([words[0] for words in trigger_words_actions.values()], [])])
-            recognized_text_upper = recognized_text.upper()  # Convert recognized text to uppercase
-            print("Recognized:", recognized_text_upper)
-            
-            # Check if any trigger word is detected
-            for word_list, action in trigger_words_actions.values():
-                detected_words = [word for word in word_list if word in recognized_text_upper]
-                if detected_words:
-                    pygame.event.post(pygame.event.Event(VOICE_EVENT, action=action))  # Generate custom event with action
+            # Try to get an item from the queue without blocking
+            queue.get_nowait()
+        except multiprocessing.queues.Empty:
+            # If the queue is empty, break the loop
+            break
 
-        except sr.UnknownValueError:
-            print("Sorry, could not understand audio.")
-        except sr.RequestError as e:
-            print("Could not request results; {0}".format(e))
+def speech_recognition_function(event_queue):
+    freeze_words = ["FREEZE", "BREEZE", "ARIES", "FRIES", "JEWELRIES", "PLEASE",
+                    "REESE", "TREES", "THREE", "PRAISE", "PRICE", "BRIEF", "FREE", "RACE"]
+    start_words = ["START", "STARKS", "STARDUST"]
+    stop_words = ["STOP"]
+    reverse_words = ["REVERSE", "BROTHERS", "RIVERS"]
+    die_words = ["DIE", "BYE", "DIVE"]
 
-        
-        
-#GameState class handles the gameplay *********************************************************
+    recognizer = sr.Recognizer()
+    recognizer.dynamic_energy_threshold = True
+    recognizer.energy_threshold = 300
+    recognizer.pause_threshold = 0.5
+
+    time.sleep(1)
+
+
+    with sr.Microphone() as source:
+        recognizer.adjust_for_ambient_noise(source, duration=0.5)
+    while True:
+        with sr.Microphone() as source:
+            try:
+                audio = recognizer.listen(source)
+                #print("Got it! Now to recognize it...")
+
+                audio = recognizer.recognize_google(audio, show_all=True)
+
+                if audio and 'alternative' in audio:
+                    speech_text = audio['alternative'][0]['transcript'].upper()
+                    #print(f"You said: {speech_text}")
+
+                    if any(word in speech_text for word in freeze_words):
+                        #print("Freeze is recognized!")
+                        event_queue.put({'command': 'FREEZE'})
+                    if any(word in speech_text for word in start_words):
+                        #print("Start is recognized!")
+                        event_queue.put({'command': 'START'})
+                    if any(word in speech_text for word in reverse_words):
+                        #print("Reverse is recognized!")
+                        event_queue.put({'command': 'REVERSE'})
+                    if any(word in speech_text for word in die_words):
+                        #print("Die is recognized!")
+                        event_queue.put({'command': 'DIE'})
+                    if any(word in speech_text for word in stop_words):
+                        #print("Stop is recognized!")
+                        event_queue.put({'command': 'STOP'})
+
+            except sr.UnknownValueError:
+                #print("Google Web Speech API could not understand audio")
+                pass
+            except sr.RequestError as e:
+                print(
+                    f"Could not request results from Google Web Speech API; {e}")
+
+
+# GameState class handles the gameplay *********************************************************
 
 class GameState:
     _instance = None
@@ -91,36 +113,38 @@ class GameState:
             cls._instance = super(GameState, cls).__new__(
                 cls, *args, **kwargs)
         # Initialize your singleton instance here
-        
-            #no powerups at start
-            cls._instance.powerup_state = "NONE" 
-            
-            #set initial positions of leds to middle of the field this is a 6-element array 
+
+            # no powerups at start
+            cls._instance.powerup_state = "NONE"
+            cls._instance.powerup_timer = 0
+
+            # set initial positions of leds to middle of the field this is a 6-element array
             cls._instance.bomb_positions = [
                 LED_STRIP_LENGTH/2, LED_STRIP_LENGTH/2,
                 LED_STRIP_LENGTH/2, LED_STRIP_LENGTH/2,
                 LED_STRIP_LENGTH/2, LED_STRIP_LENGTH/2]
-            
-            #send half of the bombs toward each player. 6-element array for each row
+
+            # send half of the bombs toward each player. 6-element array for each row
             cls._instance.bomb_directions = [
                 TOWARDS_PLAYER1, TOWARDS_PLAYER2,
                 TOWARDS_PLAYER1, TOWARDS_PLAYER2,
                 TOWARDS_PLAYER1, TOWARDS_PLAYER2]
-            
+
             # Player Scores (lower is better) + 1 when you explode
             cls._instance.player1_score = 0
             cls._instance.player2_score = 0
 
         return cls._instance
 
-    #this function is responsible for reverseing the bomb when a valid button press is registered
+    # this function is responsible for reverseing the bomb when a valid button press is registered
     def reverse_bomb(self, player_id, bomb_id):
         if (((self.bomb_directions[bomb_id] == TOWARDS_PLAYER1) and player_id == 1)
            or ((self.bomb_directions[bomb_id] == TOWARDS_PLAYER2) and player_id == 2)):
             # Reverse the direction of the bomb
             self.bomb_directions[bomb_id] = -1 * self.bomb_directions[bomb_id]
         else:
-            print(f"Invalid reverse bomb request from player {player_id} for bomb {bomb_id}")
+            print(f"Invalid reverse bomb request from player {
+                  player_id} for bomb {bomb_id}")
 
     def updatePoisitions(self, ledState):
         for i in range(0, LED_STRIP_COUNT):
@@ -130,7 +154,7 @@ class GameState:
             if (self.bomb_positions[i] <= 0 or self.bomb_positions[i] >= LED_STRIP_LENGTH):
                 # Explode!
                 # Update player scores
-                if(self.bomb_directions[i] == TOWARDS_PLAYER1):
+                if (self.bomb_directions[i] == TOWARDS_PLAYER1):
                     self.player1_score += 1
                 else:
                     self.player2_score += 1
@@ -140,8 +164,7 @@ class GameState:
                 ledState.colors[i] = ["red" for _ in range(LED_STRIP_LENGTH)]
             else:
                 ledState.colors[i][int(self.bomb_positions[i])] = "red"
-                
-                
+
 
 # This class is to manage the current positions of gthe leds. *********************************
 class LEDState:
@@ -187,8 +210,7 @@ class LEDState:
                        led_state_json, qos=1)
 
 
-
-#functions for the client to puslish and subscribe data ************************
+# functions for the client to puslish and subscribe data ************************
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
     client.subscribe("ece180d/team3/reverseabomb/wristband1", qos=1)
@@ -224,7 +246,7 @@ def on_message(client, userdata, msg):
 def main():
     client = mqtt.Client()
     client.on_connect = on_connect
-    client.on_message = on_message  
+    client.on_message = on_message
     client.connect_async('mqtt.eclipseprojects.io')
     client.loop_start()
     gameState = GameState()
@@ -256,14 +278,30 @@ def main():
     # move_down_sound.set_volume(0.5)
     # collision_sound.set_volume(0.5)
 
+    # Setup for speech reconition
+    event_queue = multiprocessing.Queue()
+    clear_queue(event_queue)
+    speech_process = multiprocessing.Process(
+        target=speech_recognition_function, args=(event_queue,))
+    speech_process.start()
+
     # Variable to keep our main loop running
     running = True
 
     # Our main loop
     while running:
-        #Reset LED state
+        # Reset LED state
         for i in range(0, LED_STRIP_COUNT):
             ledState.colors[i] = ["black" for _ in range(LED_STRIP_LENGTH)]
+
+        # Process any speech and add it to events
+        # Check for new speech recognition events
+        while not event_queue.empty():
+            message = event_queue.get()
+            #print(f"Received q message: {message}")
+            if message['command'] in ['FREEZE', 'START', 'REVERSE', 'DIE', 'STOP']:
+                pygame.event.post(pygame.event.Event(
+                    VOICE_EVENT, command=message['command']))
 
         # xpos_1, ypos_1, xpos_2, ypos_2 = get_position() # get position of each player
 
@@ -288,34 +326,37 @@ def main():
                 slap_sound.play()
                 gameState.reverse_bomb(2, 0)
             elif event.type == VOICE_EVENT:
-                print("Voice detected")
-                if(event.action == "STOP_ACTION"):
-                    print("STOP detected")
+                # Handle voice command events
+                if event.command == "FREEZE":
+                    # Handle freeze command
+                    print("FREEZE EVENT DETECTED")
+                elif event.command == "START":
+                    # Handle start command
+                    print("START EVENT DETECTED")
+                elif event.command == "REVERSE":
+                    # Handle reverse command
+                    print("REVERSE EVENT DETECTED")
+                elif event.command == "DIE":
+                    # Handle die command
+                    print("DIE EVENT DETECTED")
+                elif event.command == "STOP":
+                    # Handle stop command
+                    print("STOP EVENT DETECTED")
                     running = False
-                elif(event.action == "FREEZE_ACTION"):
-                    print("FREEZE detected")
-                    if(gameState.powerup_state == "NONE"):
-                        gameState.powerup_state = "FREEZE"
-                elif event.action == "START_ACTION":
-                    print("START detected")
+                    break
 
-                elif event.action == "REVERSE_ACTION":
-                    print("REVERSE detected")
-
-                elif event.action == "DIE_ACTION":
-                    print("DIE detected")
-
-
-        #Monitor if bombs explode
+        # Monitor if bombs explode
         gameState.updatePoisitions(ledState)
 
         # Send LED state to the LED strips
-        ledState.send_LED_state(client, gameState, LED_STRIP_LENGTH, LED_STRIP_COUNT)
-                    
+        ledState.send_LED_state(
+            client, gameState, LED_STRIP_LENGTH, LED_STRIP_COUNT)
+
         # DEMO SECTION: Just show LEDs in pygame window
         for i in range(0, LED_STRIP_COUNT):
             for j in range(0, LED_STRIP_LENGTH):
-                pygame.draw.rect(screen, ledState.colors[i][j], [j*10, i*15, 10, 15])
+                pygame.draw.rect(screen, ledState.colors[i][j], [
+                                 j*10, i*15, 10, 15])
         # Fill the screen with sky blue
         pygame.display.flip()
         # Ensure we maintain a 30 frames per second rate
@@ -324,6 +365,10 @@ def main():
     # At this point, we're done, so we can stop and quit the mixer
     pygame.mixer.music.stop()
     pygame.mixer.quit()
+
+    # Cleanup processes
+    speech_process.terminate()
+    speech_process.join()
 
 
 if __name__ == "__main__":
