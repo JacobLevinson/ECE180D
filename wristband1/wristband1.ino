@@ -194,11 +194,13 @@ void loop()
 
     gyr_data.gyr_z = g_z;
 
-    if (sqrt(acc_data.acc_x * acc_data.acc_x + acc_data.acc_y * acc_data.acc_y + acc_data.acc_z * acc_data.acc_z) > 30.0 && acc_data.acc_z > 25)
+    if (sqrt(acc_data.acc_x * acc_data.acc_x + acc_data.acc_y * acc_data.acc_y 
+      + acc_data.acc_z * acc_data.acc_z) > 30.0 && acc_data.acc_z > 25)
     {
       digitalWrite(LED_BUILTIN, HIGH);
       mqtt.publish(publishTopic, "SLAP1");
-      Serial.println(sqrt(acc_data.acc_x * acc_data.acc_x + acc_data.acc_y * acc_data.acc_y + acc_data.acc_z * acc_data.acc_z));
+      Serial.println(sqrt(acc_data.acc_x * acc_data.acc_x + acc_data.acc_y * 
+        acc_data.acc_y + acc_data.acc_z * acc_data.acc_z));
       Serial.println(acc_data.acc_z);
       Serial.println();
       delay(100);

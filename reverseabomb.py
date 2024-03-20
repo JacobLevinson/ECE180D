@@ -63,39 +63,41 @@ def speech_recognition_function(event_queue):
     recognizer.pause_threshold = 0.5
 
     time.sleep(1)
+
+
+    with sr.Microphone() as source:
+        recognizer.adjust_for_ambient_noise(source, duration=0.5)
     while True:
         with sr.Microphone() as source:
             try:
-                print("Say something!")
-                recognizer.adjust_for_ambient_noise(source, duration=0.5)
-
                 audio = recognizer.listen(source)
-                print("Got it! Now to recognize it...")
+                #print("Got it! Now to recognize it...")
 
                 audio = recognizer.recognize_google(audio, show_all=True)
 
                 if audio and 'alternative' in audio:
                     speech_text = audio['alternative'][0]['transcript'].upper()
-                    print(f"You said: {speech_text}")
+                    #print(f"You said: {speech_text}")
 
                     if any(word in speech_text for word in freeze_words):
-                        print("Freeze is recognized!")
-                        event_queue.put({'command': 'freeze'})
+                        #print("Freeze is recognized!")
+                        event_queue.put({'command': 'FREEZE'})
                     if any(word in speech_text for word in start_words):
-                        print("Start is recognized!")
+                        #print("Start is recognized!")
                         event_queue.put({'command': 'START'})
                     if any(word in speech_text for word in reverse_words):
-                        print("Reverse is recognized!")
+                        #print("Reverse is recognized!")
                         event_queue.put({'command': 'REVERSE'})
                     if any(word in speech_text for word in die_words):
-                        print("Die is recognized!")
+                        #print("Die is recognized!")
                         event_queue.put({'command': 'DIE'})
                     if any(word in speech_text for word in stop_words):
-                        print("Stopping the game")
+                        #print("Stop is recognized!")
                         event_queue.put({'command': 'STOP'})
 
             except sr.UnknownValueError:
-                print("Google Web Speech API could not understand audio")
+                #print("Google Web Speech API could not understand audio")
+                pass
             except sr.RequestError as e:
                 print(
                     f"Could not request results from Google Web Speech API; {e}")
@@ -296,7 +298,7 @@ def main():
         # Check for new speech recognition events
         while not event_queue.empty():
             message = event_queue.get()
-            print(f"Received q message: {message}")
+            #print(f"Received q message: {message}")
             if message['command'] in ['FREEZE', 'START', 'REVERSE', 'DIE', 'STOP']:
                 pygame.event.post(pygame.event.Event(
                     VOICE_EVENT, command=message['command']))
