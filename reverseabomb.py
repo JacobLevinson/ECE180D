@@ -166,7 +166,7 @@ class GameState:
                 ledState.colors[i][int(self.bomb_positions[i])] = "red"
 
 
-# This class is to manage the current positions of gthe leds. *********************************
+# This class is to manage the current positions of the leds. *********************************
 class LEDState:
     _instance = None
 
