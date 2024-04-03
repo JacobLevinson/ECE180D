@@ -39,7 +39,9 @@ SLAP_1 = pygame.USEREVENT + 1
 SLAP_2 = pygame.USEREVENT + 2
 VOICE_EVENT = pygame.USEREVENT + 3
 
+FPS = 10
 
+# Function to clear the queue
 def clear_queue(queue):
     while True:
         try:
@@ -148,22 +150,26 @@ class GameState:
 
     def updatePoisitions(self, ledState):
         for i in range(0, LED_STRIP_COUNT):
-            self.bomb_positions[i] = self.bomb_positions[i] + \
-                self.bomb_directions[i]
-
-            if (self.bomb_positions[i] <= 0 or self.bomb_positions[i] >= LED_STRIP_LENGTH):
-                # Explode!
-                # Update player scores
-                if (self.bomb_directions[i] == TOWARDS_PLAYER1):
-                    self.player1_score += 1
-                else:
-                    self.player2_score += 1
-                print(f"Bomb {i} exploded!")
-                # Reset bomb position
-                self.bomb_positions[i] = LED_STRIP_LENGTH/2
-                ledState.colors[i] = ["red" for _ in range(LED_STRIP_LENGTH)]
-            else:
+            if(self.powerup_state == "FREEZE"):
+                ledState.colors[i] = ["blue" for _ in range(LED_STRIP_LENGTH)]
                 ledState.colors[i][int(self.bomb_positions[i])] = "red"
+            else:
+                self.bomb_positions[i] = self.bomb_positions[i] + \
+                    self.bomb_directions[i]
+
+                if (self.bomb_positions[i] <= 0 or self.bomb_positions[i] >= LED_STRIP_LENGTH):
+                    # Explode!
+                    # Update player scores
+                    if (self.bomb_directions[i] == TOWARDS_PLAYER1):
+                        self.player1_score += 1
+                    else:
+                        self.player2_score += 1
+                    print(f"Bomb {i} exploded!")
+                    # Reset bomb position
+                    self.bomb_positions[i] = LED_STRIP_LENGTH/2
+                    ledState.colors[i] = ["red" for _ in range(LED_STRIP_LENGTH)]
+                else:
+                    ledState.colors[i][int(self.bomb_positions[i])] = "red"
 
 
 # This class is to manage the current positions of the leds. *********************************
@@ -330,6 +336,9 @@ def main():
                 if event.command == "FREEZE":
                     # Handle freeze command
                     print("FREEZE EVENT DETECTED")
+                    if(gameState.powerup_state == "NONE"):
+                        gameState.powerup_state = "FREEZE"
+                        gameState.powerup_timer = FPS * 3
                 elif event.command == "START":
                     # Handle start command
                     print("START EVENT DETECTED")
@@ -357,10 +366,19 @@ def main():
             for j in range(0, LED_STRIP_LENGTH):
                 pygame.draw.rect(screen, ledState.colors[i][j], [
                                  j*10, i*15, 10, 15])
-        # Fill the screen with sky blue
+
+        # Update Powerup Timer
+        if(gameState.powerup_state != "NONE"):
+            gameState.powerup_timer -= 1
+            if(gameState.powerup_timer <= 0):
+                gameState.powerup_state = "NONE"    
+
+
+        
+        # Display Screen
         pygame.display.flip()
-        # Ensure we maintain a 30 frames per second rate
-        clock.tick(10)
+        # Ensure we maintain FPS rate
+        clock.tick(FPS)
 
     # At this point, we're done, so we can stop and quit the mixer
     pygame.mixer.music.stop()
