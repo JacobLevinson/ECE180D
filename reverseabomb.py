@@ -151,9 +151,15 @@ class GameState:
     def updatePoisitions(self, ledState):
         for i in range(0, LED_STRIP_COUNT):
             if(self.powerup_state == "FREEZE"):
+                # Do not change bomb positions
                 ledState.colors[i] = ["blue" for _ in range(LED_STRIP_LENGTH)]
-                ledState.colors[i][int(self.bomb_positions[i])] = "red"
+            elif(self.powerup_state == "REVERSE"):
+                # Reverse all bomb directions
+                self.bomb_directions[i] = -1 * self.bomb_directions[i]
+                self.powerup_state = "NONE" 
+                
             else:
+                # Move bombs towards players
                 self.bomb_positions[i] = self.bomb_positions[i] + \
                     self.bomb_directions[i]
 
@@ -168,8 +174,8 @@ class GameState:
                     # Reset bomb position
                     self.bomb_positions[i] = LED_STRIP_LENGTH/2
                     ledState.colors[i] = ["red" for _ in range(LED_STRIP_LENGTH)]
-                else:
-                    ledState.colors[i][int(self.bomb_positions[i])] = "red"
+            # Always set the bomb position to red
+            ledState.colors[i][int(self.bomb_positions[i])] = "red"
 
 
 # This class is to manage the current positions of the leds. *********************************
@@ -345,6 +351,9 @@ def main():
                 elif event.command == "REVERSE":
                     # Handle reverse command
                     print("REVERSE EVENT DETECTED")
+                    if(gameState.powerup_state == "NONE"):
+                        gameState.powerup_state = "REVERSE"
+                        gameState.powerup_timer = 1
                 elif event.command == "DIE":
                     # Handle die command
                     print("DIE EVENT DETECTED")
@@ -355,7 +364,7 @@ def main():
                     break
 
         # Monitor if bombs explode
-        gameState.updatePoisitions(ledState)
+        gameState.updatePoisitions(ledState) #updates positions and then the ledstate
 
         # Send LED state to the LED strips
         ledState.send_LED_state(
