@@ -63,13 +63,6 @@ print("speech ready")
     
 #speech_text = recognize_speech_from_mic(recognizer, microphone)
 
-# Function to find the index of a microphone by its name
-def find_microphone_index(name):
-    for index, mic_name in enumerate(sr.Microphone.list_microphone_names()):
-        if name in mic_name:
-            return index
-    return None
-
 
 '''
 def recognize_and_convert_to_uppercase():
@@ -174,22 +167,46 @@ def speech_recognition_function():
 
 
 if __name__ == "__main__":
-
+    
+    # Function to find the index of a microphone by its name
+    def find_microphone_index(name):
+        for index, mic_name in enumerate(sr.Microphone.list_microphone_names()):
+            if name in mic_name:
+                return index
+        return None
+    
+    # Better to say the power up key words more than once
     freeze_words = ["FREEZE", "BREEZE", "ARIES", "FRIES", "JEWELRIES", "PLEASE", "REESE", "TREES", "THREE",
-                     "PRAISE", "PRICE", "BRIEF", "FREE", "RACE"]
-    start_words = ["START","STARKS","STARDUST"]
-    stop_words = ["STOP", "STAP"]
-    reverse_words = ["REVERSE", "BROTHERS", "RIVERS"]
-    die_words = ["DIE", "BYE", "DIVE"]
+                     "PRAISE", "PRICE", "BRIEF", "FREE", "RACE","FRIENDS", "MONSTER HIGH", "FREE", "MOVIES", "FREEZER", "SPRINGS", "IS", "WALGREENS",
+                      "PLEASE", "GREEN", "SPRINGS", "FACE", "CHRISTMAS MUSIC", "FRESH"]
+    start_words = ["START","STARKS","STARDUST", "APRIL 1ST", "CHART","STAR"] # this works pretty good
+    stop_words = ["STOP", "STAP", "713"] # this works pretty good
+    reverse_words = ["REVERSE", "BROTHERS", "RIVERS", "REVEREND", "PROVERBS", "WEATHER", "REVERSED"]
+    slow_words = ["SLOW", "LOW", "HELLO", "CLOSE", "SONGS", "SO", "SOLO", "BLOW", "POST MALONE", "SLOWED"]
+    #die_words = ["DIE", "BYE", "DIVE"]
 
     time.sleep(2)
     while True:
+        # Name of the microphone you want to use
+        microphone_name = "Microphone (USBAudio1.0)"
+
+        # Find the index of the microphone by its name
+        microphone_index = find_microphone_index(microphone_name)
+
+        # Check if the microphone index is found
+        if microphone_index is not None:
+            # Initialize the chosen microphone by index
+            chosen_microphone = sr.Microphone(device_index=microphone_index)
+            print(f"Using microphone '{microphone_name}' (index: {microphone_index})")
+        else:
+            print(f"Microphone '{microphone_name}' not found.")
+    
         recognizer = sr.Recognizer()
         recognizer.dynamic_energy_threshold = True  # Enable dynamic energy threshold
         recognizer.energy_threshold = 300  # Adjust this value as needed
         recognizer.pause_threshold = 0.5  # Adjust this value as needed
 
-        with sr.Microphone() as source:
+        with chosen_microphone as source:
             print("Say something!")
             recognizer.adjust_for_ambient_noise(source, duration=0.5)  # This line calibrates the noise level by listening for half a second to capture ambient noise. 
 
@@ -211,12 +228,12 @@ if __name__ == "__main__":
                         print("Start is recognized!")
                     if any(word in speech_text for word in reverse_words):
                         print("Reverse is recognized!")
-                    if any(word in speech_text for word in die_words):
-                        print("Die is recognized!")
+                    if any(word in speech_text for word in slow_words):
+                        print("Slow is recognized!")
 
                     if any(word in speech_text for word in stop_words):
                         print("Stopping the game")
-                        break
+                        #break
 
             except sr.UnknownValueError:
                 print("Google Web Speech API could not understand audio")
