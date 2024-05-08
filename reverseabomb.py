@@ -298,8 +298,72 @@ def main():
     speech_process.start()
 
     # Variable to keep our main loop running
-    running = True
+    running = False
 
+
+    ## Start the Game
+
+    # Code to allow user to click on pgame button to start or start the game via voice
+
+    def draw_button(screen, msg, x, y, w, h, ic, ac):
+        mouse = pygame.mouse.get_pos()
+        if x+w > mouse[0] > x and y+h > mouse[1] > y:
+            pygame.draw.rect(screen, ac, (x, y, w, h))
+        else:
+            pygame.draw.rect(screen, ic, (x, y, w, h))
+
+        smallText = pygame.font.SysFont("comicsansms", 20)
+        textSurf = smallText.render(msg, True, (0, 0, 0))
+        textRect = textSurf.get_rect()
+        textRect.center = ((x + (w // 2)), (y + (h // 2)))
+        screen.blit(textSurf, textRect)
+
+
+    # Setup the display
+    pygame.init()
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    pygame.display.set_caption('Game Start Button')
+
+    # Main loop control
+    running = False
+    game_started = False
+
+    while not game_started:
+        screen.fill((255, 255, 255))  # Clear screen with white
+
+        # Text above the button
+        font = pygame.font.SysFont('comicsansms', 28)  # Choose a font and size
+        text_surface = font.render('Say or press "Start Game"', True, (0, 0, 0))  # Create a text surface
+        text_rect = text_surface.get_rect(center=(SCREEN_WIDTH / 2, 260))  # Position it above the button
+        screen.blit(text_surface, text_rect)  # Draw the text on the screen
+        draw_button(screen, 'Start Game', 360, 310,
+                    240, 100, (0, 200, 0), (0, 255, 0))
+
+        pygame.display.flip()  # Update display
+        while not event_queue.empty():
+            message = event_queue.get()
+            print(f"Received q message: {message}")
+            if message['command'] in ['FREEZE', 'START', 'REVERSE', 'DIE', 'STOP']:
+                pygame.event.post(pygame.event.Event(
+                    VOICE_EVENT, command=message['command']))
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = event.pos
+                if 360 <= mouse_x <= 600 and 310 <= mouse_y <= 410:
+                    game_started = True
+                    running = True
+            elif event.type == VOICE_EVENT:
+                if event.command == "START":
+                    game_started = True
+                    running = True
+
+    # Clear the screen with black or any other base color after starting the game
+    screen.fill((0, 0, 0))  # Change the RGB value to your desired background color
+    pygame.display.flip()
+    pygame.display.set_caption('Reverse-A-Bomb')
     # Our main loop
     while running:
         # Reset LED state
