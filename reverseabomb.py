@@ -52,12 +52,14 @@ def clear_queue(queue):
             break
 
 def speech_recognition_function(event_queue):
-    freeze_words = ["FREEZE", "BREEZE", "ARIES", "FRIES", "JEWELRIES", "PLEASE",
-                    "REESE", "TREES", "THREE", "PRAISE", "PRICE", "BRIEF", "FREE", "RACE"]
-    start_words = ["START", "STARKS", "STARDUST"]
-    stop_words = ["STOP"]
-    reverse_words = ["REVERSE", "BROTHERS", "RIVERS"]
-    die_words = ["DIE", "BYE", "DIVE"]
+    freeze_words = ["FREEZE", "BREEZE", "ARIES", "FRIES", "JEWELRIES", "PLEASE", "REESE", "TREES", "THREE",
+                     "PRAISE", "PRICE", "BRIEF", "FREE", "RACE","FRIENDS", "MONSTER HIGH", "FREE", "MOVIES", "FREEZER", "SPRINGS", "IS", "WALGREENS",
+                      "PLEASE", "GREEN", "SPRINGS", "FACE", "CHRISTMAS MUSIC", "FRESH"]
+    start_words = ["START","STARKS","STARDUST", "APRIL 1ST", "CHART","STAR"]
+    stop_words = ["STOP", "STAP", "713"]
+    reverse_words = ["REVERSE", "BROTHERS", "RIVERS", "REVEREND", "PROVERBS", "WEATHER", "REVERSED"]
+    slow_words = ["SLOW", "LOW", "HELLO", "CLOSE", "SONGS", "SO", "SOLO", "BLOW", "POST MALONE", "SLOWED"]
+    #die_words = ["DIE", "BYE", "DIVE"]
 
     recognizer = sr.Recognizer()
     recognizer.dynamic_energy_threshold = True
