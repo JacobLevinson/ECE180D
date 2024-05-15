@@ -92,9 +92,12 @@ def speech_recognition_function(event_queue):
                     if any(word in speech_text for word in reverse_words):
                         #print("Reverse is recognized!")
                         event_queue.put({'command': 'REVERSE'})
-                    if any(word in speech_text for word in die_words):
+                    # if any(word in speech_text for word in die_words):
                         #print("Die is recognized!")
-                        event_queue.put({'command': 'DIE'})
+                        #event_queue.put({'command': 'DIE'})
+                    if any(word in speech_text for word in slow_words):
+                        #print("Slow is recognized!")
+                        event_queue.put({'command': 'STOP'})
                     if any(word in speech_text for word in stop_words):
                         #print("Stop is recognized!")
                         event_queue.put({'command': 'STOP'})
@@ -348,7 +351,7 @@ def main():
         while not event_queue.empty():
             message = event_queue.get()
             print(f"Received q message: {message}")
-            if message['command'] in ['FREEZE', 'START', 'REVERSE', 'DIE', 'STOP']:
+            if message['command'] in ['FREEZE', 'START', 'REVERSE', 'SLOW', 'STOP']:
                 pygame.event.post(pygame.event.Event(
                     VOICE_EVENT, command=message['command']))
         for event in pygame.event.get():
@@ -380,7 +383,7 @@ def main():
         while not event_queue.empty():
             message = event_queue.get()
             #print(f"Received q message: {message}")
-            if message['command'] in ['FREEZE', 'START', 'REVERSE', 'DIE', 'STOP']:
+            if message['command'] in ['FREEZE', 'START', 'REVERSE', 'SLOW', 'STOP']:
                 pygame.event.post(pygame.event.Event(
                     VOICE_EVENT, command=message['command']))
 
@@ -423,9 +426,9 @@ def main():
                     if(gameState.powerup_state == "NONE"):
                         gameState.powerup_state = "REVERSE"
                         gameState.powerup_timer = 1
-                elif event.command == "DIE":
-                    # Handle die command
-                    print("DIE EVENT DETECTED")
+                elif event.command == "SLOW":
+                    # Handle SLOW command
+                    print("SLOW EVENT DETECTED")
                 elif event.command == "STOP":
                     # Handle stop command
                     print("STOP EVENT DETECTED")
