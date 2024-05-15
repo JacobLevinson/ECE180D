@@ -162,6 +162,9 @@ class GameState:
                 # Reverse all bomb directions
                 self.bomb_directions[i] = -1 * self.bomb_directions[i]
                 self.powerup_state = "NONE" 
+            #elif(self.powerup_state == "SLOW"):
+                # Slow down bombs coming towards you
+
                 
             else:
                 # Move bombs towards players
