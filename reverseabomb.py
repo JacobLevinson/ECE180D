@@ -9,7 +9,7 @@ from pygame.locals import (
     QUIT,
 )
 import paho.mqtt.client as mqtt
-import json
+import json 
 import math
 import random
 import speech_recognition as sr
@@ -196,8 +196,11 @@ class LEDState:
         return cls._instance
 
     def send_LED_state(self, client, gameState, strip_length, strip_count):
-        # Create a dictionary to store LED states for each strip
-        led_state_dict = {}
+        # # Create a dictionary to store LED states for each strip
+        # led_state_dict = {}
+        
+        # Convert the LED positions list to a comma-separated string
+        led_state_str = ''.join(led_position)
 
         # Set LEDs at bomb positions to a different color (e.g., "red")
         for strip_index, pixel in enumerate(gameState.bomb_positions):

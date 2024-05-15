@@ -69,8 +69,6 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
   Serial.println();
 
-  
-
   //now with the read data, update the LEDS for the gameboard
   for (int stripIndex = 0; stripIndex < NUM_LED_ARRAYS; stripIndex++) 
   {
