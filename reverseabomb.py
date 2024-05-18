@@ -265,7 +265,18 @@ def on_message(client, userdata, msg):
             print(f"Unhandled message: {
                   message_content} from wristband {wristband_id}")
 
+def draw_button(screen, msg, x, y, w, h, ic, ac):
+    mouse = pygame.mouse.get_pos()
+    if x+w > mouse[0] > x and y+h > mouse[1] > y:
+        pygame.draw.rect(screen, ac, (x, y, w, h))
+    else:
+        pygame.draw.rect(screen, ic, (x, y, w, h))
 
+    smallText = pygame.font.SysFont("comicsansms", 20)
+    textSurf = smallText.render(msg, True, (0, 0, 0))
+    textRect = textSurf.get_rect()
+    textRect.center = ((x + (w // 2)), (y + (h // 2)))
+    screen.blit(textSurf, textRect)
 def main():
     client = mqtt.Client()
     client.on_connect = on_connect
@@ -316,18 +327,7 @@ def main():
 
     # Code to allow user to click on pgame button to start or start the game via voice
 
-    def draw_button(screen, msg, x, y, w, h, ic, ac):
-        mouse = pygame.mouse.get_pos()
-        if x+w > mouse[0] > x and y+h > mouse[1] > y:
-            pygame.draw.rect(screen, ac, (x, y, w, h))
-        else:
-            pygame.draw.rect(screen, ic, (x, y, w, h))
 
-        smallText = pygame.font.SysFont("comicsansms", 20)
-        textSurf = smallText.render(msg, True, (0, 0, 0))
-        textRect = textSurf.get_rect()
-        textRect.center = ((x + (w // 2)), (y + (h // 2)))
-        screen.blit(textSurf, textRect)
 
 
     # Setup the display
