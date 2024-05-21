@@ -10,8 +10,8 @@ def detect_colors(frame):
     upper_pink = np.array([170, 255, 255])  # Adjust values as needed
 
     # Define range of green color in HSV
-    lower_green = np.array([60, 100, 100])  # Adjust values as needed
-    upper_green = np.array([80, 255, 255])  # Adjust values as needed
+    lower_green = np.array([25, 80, 200])  # Adjust values as needed
+    upper_green = np.array([50, 170, 255])  # Adjust values as needed
     
     # Threshold the HSV image to get only pink colors
     mask_pink = cv2.inRange(hsv, lower_pink, upper_pink)
@@ -58,8 +58,8 @@ def detect_colors(frame):
         red_dot_pos_green = center_green
 
     # If red dot positions are found, print their coordinates
-    if red_dot_pos_pink:
-        print("Pink Dot Position (x, y):", red_dot_pos_pink)
+    # if red_dot_pos_pink:
+    #     print("Pink Dot Position (x, y):", red_dot_pos_pink)
     if red_dot_pos_green:
         print("Green Dot Position (x, y):", red_dot_pos_green)
 
@@ -68,7 +68,7 @@ def detect_colors(frame):
 # Main function
 def main():
     # Open video capture
-    cap = cv2.VideoCapture(0)  # Change the argument to the appropriate index if you have multiple cameras
+    cap = cv2.VideoCapture(1)  # Change the argument to the appropriate index if you have multiple cameras
 
     while True:
         # Capture frame-by-frame

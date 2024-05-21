@@ -60,12 +60,14 @@ def clear_queue(queue):
             break
 
 def speech_recognition_function(event_queue):
-    freeze_words = ["FREEZE", "BREEZE", "ARIES", "FRIES", "JEWELRIES", "PLEASE",
-                    "REESE", "TREES", "THREE", "PRAISE", "PRICE", "BRIEF", "FREE", "RACE"]
-    start_words = ["START", "STARKS", "STARDUST"]
-    stop_words = ["STOP"]
-    reverse_words = ["REVERSE", "BROTHERS", "RIVERS"]
-    die_words = ["DIE", "BYE", "DIVE"]
+    freeze_words = ["FREEZE", "BREEZE", "ARIES", "FRIES", "JEWELRIES", "PLEASE", "REESE", "TREES", "THREE",
+                     "PRAISE", "PRICE", "BRIEF", "FREE", "RACE","FRIENDS", "MONSTER HIGH", "FREE", "MOVIES", "FREEZER", "SPRINGS", "IS", "WALGREENS",
+                      "PLEASE", "GREEN", "SPRINGS", "FACE", "CHRISTMAS MUSIC", "FRESH"]
+    start_words = ["START","STARKS","STARDUST", "APRIL 1ST", "CHART","STAR"]
+    stop_words = ["STOP", "STAP", "713"]
+    reverse_words = ["REVERSE", "BROTHERS", "RIVERS", "REVEREND", "PROVERBS", "WEATHER", "REVERSED"]
+    slow_words = ["SLOW", "LOW", "HELLO", "CLOSE", "SONGS", "SO", "SOLO", "BLOW", "POST MALONE", "SLOWED"]
+    #die_words = ["DIE", "BYE", "DIVE"]
 
     recognizer = sr.Recognizer()
     recognizer.dynamic_energy_threshold = True
@@ -98,9 +100,12 @@ def speech_recognition_function(event_queue):
                     if any(word in speech_text for word in reverse_words):
                         #print("Reverse is recognized!")
                         event_queue.put({'command': 'REVERSE'})
-                    if any(word in speech_text for word in die_words):
+                    # if any(word in speech_text for word in die_words):
                         #print("Die is recognized!")
-                        event_queue.put({'command': 'DIE'})
+                        #event_queue.put({'command': 'DIE'})
+                    if any(word in speech_text for word in slow_words):
+                        #print("Slow is recognized!")
+                        event_queue.put({'command': 'STOP'})
                     if any(word in speech_text for word in stop_words):
                         #print("Stop is recognized!")
                         event_queue.put({'command': 'STOP'})
@@ -165,6 +170,9 @@ class GameState:
                 # Reverse all bomb directions
                 self.bomb_directions[i] = -1 * self.bomb_directions[i]
                 self.powerup_state = "NONE" 
+            #elif(self.powerup_state == "SLOW"):
+                # Slow down bombs coming towards you
+
                 
             else:
                 # Move bombs towards players
@@ -260,7 +268,18 @@ def on_message(client, userdata, msg):
             print(f"Unhandled message: {
                   message_content} from wristband {wristband_id}")
 
+def draw_button(screen, msg, x, y, w, h, ic, ac):
+    mouse = pygame.mouse.get_pos()
+    if x+w > mouse[0] > x and y+h > mouse[1] > y:
+        pygame.draw.rect(screen, ac, (x, y, w, h))
+    else:
+        pygame.draw.rect(screen, ic, (x, y, w, h))
 
+    smallText = pygame.font.SysFont("comicsansms", 20)
+    textSurf = smallText.render(msg, True, (0, 0, 0))
+    textRect = textSurf.get_rect()
+    textRect.center = ((x + (w // 2)), (y + (h // 2)))
+    screen.blit(textSurf, textRect)
 def main():
     client = mqtt.Client()
     client.on_connect = on_connect
@@ -311,18 +330,7 @@ def main():
 
     # Code to allow user to click on pgame button to start or start the game via voice
 
-    def draw_button(screen, msg, x, y, w, h, ic, ac):
-        mouse = pygame.mouse.get_pos()
-        if x+w > mouse[0] > x and y+h > mouse[1] > y:
-            pygame.draw.rect(screen, ac, (x, y, w, h))
-        else:
-            pygame.draw.rect(screen, ic, (x, y, w, h))
 
-        smallText = pygame.font.SysFont("comicsansms", 20)
-        textSurf = smallText.render(msg, True, (0, 0, 0))
-        textRect = textSurf.get_rect()
-        textRect.center = ((x + (w // 2)), (y + (h // 2)))
-        screen.blit(textSurf, textRect)
 
 
     # Setup the display
@@ -349,7 +357,7 @@ def main():
         while not event_queue.empty():
             message = event_queue.get()
             print(f"Received q message: {message}")
-            if message['command'] in ['FREEZE', 'START', 'REVERSE', 'DIE', 'STOP']:
+            if message['command'] in ['FREEZE', 'START', 'REVERSE', 'SLOW', 'STOP']:
                 pygame.event.post(pygame.event.Event(
                     VOICE_EVENT, command=message['command']))
         for event in pygame.event.get():
@@ -381,7 +389,7 @@ def main():
         while not event_queue.empty():
             message = event_queue.get()
             #print(f"Received q message: {message}")
-            if message['command'] in ['FREEZE', 'START', 'REVERSE', 'DIE', 'STOP']:
+            if message['command'] in ['FREEZE', 'START', 'REVERSE', 'SLOW', 'STOP']:
                 pygame.event.post(pygame.event.Event(
                     VOICE_EVENT, command=message['command']))
 
@@ -424,9 +432,9 @@ def main():
                     if(gameState.powerup_state == "NONE"):
                         gameState.powerup_state = "REVERSE"
                         gameState.powerup_timer = 1
-                elif event.command == "DIE":
-                    # Handle die command
-                    print("DIE EVENT DETECTED")
+                elif event.command == "SLOW":
+                    # Handle SLOW command
+                    print("SLOW EVENT DETECTED")
                 elif event.command == "STOP":
                     # Handle stop command
                     print("STOP EVENT DETECTED")
