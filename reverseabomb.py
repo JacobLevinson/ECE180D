@@ -22,15 +22,23 @@ import pygame
 # Import random for random numbers
 import random
 
+# Define mqtt server and topics 
+mqtt_server = 'mqtt.eclipseprojects.io'
+led_controller_topic = 'ece180d/team3/reverseabomb/ledcontroller'
+wristband1_topic = "ece180d/team3/reverseabomb/wristband1"
+wristband2_topic = "ece180d/team3/reverseabomb/wristband2"
+
 # Define constants for the screen width and height
 SCREEN_WIDTH = 960
 SCREEN_HEIGHT = 720
 
 PLAYER1_ROW = 0
 PLAYER2_ROW = 0
+
 # Physical Paremeters
 LED_STRIP_LENGTH = 90  # Number of LEDs in each strip
 LED_STRIP_COUNT = 6  # Number of LED strips
+
 TOWARDS_PLAYER1 = 1
 TOWARDS_PLAYER2 = -1
 
@@ -191,45 +199,40 @@ class LEDState:
             # Here we have an initialization of a 2D List, the first list is for the specific led strip
             # and the second list is for the index of the specific led in the strip
             # initially, set all leds to off a.k.a "black"
-            cls._instance.colors = [
-                ["black" for _ in range(LED_STRIP_LENGTH)] for _ in range(LED_STRIP_COUNT)]
+            cls._instance.colors = [["black" for _ in range(LED_STRIP_LENGTH)] for _ in range(LED_STRIP_COUNT)]
         return cls._instance
 
     def send_LED_state(self, client, gameState, strip_length, strip_count):
-        # # Create a dictionary to store LED states for each strip
-        # led_state_dict = {}
         
         # Convert the LED positions list to a comma-separated string
-        led_state_str = ''.join(led_position)
+        led_state_str = ''.join(self.colors) 
 
-        # Set LEDs at bomb positions to a different color (e.g., "red")
-        for strip_index, pixel in enumerate(gameState.bomb_positions):
-            # Convert position to an integer (assuming it's a float)
-            pixel = int(pixel)
+        # # Set LEDs at bomb positions to a different color (e.g., "red")
+        # for strip_index, pixel in enumerate(gameState.bomb_positions):
+        #     # Convert position to an integer (assuming it's a float)
+        #     pixel = int(pixel)
 
-            # Ensure the position is within the LED strip length
-            pixel = max(0, min(pixel, strip_length - 1))
+        #     # Ensure the position is within the LED strip length
+        #     pixel = max(0, min(pixel, strip_length - 1))
 
-            # Update the dictionary with LED states
-            led_state_dict[f"LED_Strip_{strip_index}"] = {
-                "pixels": self._instance.colors[strip_index]}
-            # Outputs in the form of:
-            #   "LED_Strip_0": {"pixels": ["black", "black", ...]},
-            #   "LED_Strip_1": {"pixels": ["black", "black", ...]},
+        #     # Update the dictionary with LED states
+        #     led_state_dict[f"LED_Strip_{strip_index}"] = {
+        #         "pixels": self._instance.colors[strip_index]}
+        #     # Outputs in the form of:
+        #     #   "LED_Strip_0": {"pixels": ["black", "black", ...]},
+        #     #   "LED_Strip_1": {"pixels": ["black", "black", ...]},
 
-        # Convert the dictionary to a JSON string
-        led_state_json = json.dumps(led_state_dict, indent=2)
 
-        # Publish the LED state to the LED controller topic
-        client.publish("ece180d/team3/reverseabomb/ledcontroller",
-                       led_state_json, qos=1)
-
+        # Publish the LED state to the LED controller topic with QoS 0
+        client.publish(led_controller_topic, led_state_str, qos=0)
+        print("LED state published to the LED controller topic.")
+        print("LED positions:", led_position)  # Print LED positions for debugging
 
 # functions for the client to puslish and subscribe data ************************
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
-    client.subscribe("ece180d/team3/reverseabomb/wristband1", qos=1)
-    client.subscribe("ece180d/team3/reverseabomb/wristband2", qos=1)
+    client.subscribe(wristband1_topic, qos=1)
+    client.subscribe(wristband2_topic, qos=1)
 
 
 def on_message(client, userdata, msg):
@@ -262,7 +265,7 @@ def main():
     client = mqtt.Client()
     client.on_connect = on_connect
     client.on_message = on_message
-    client.connect_async('mqtt.eclipseprojects.io')
+    client.connect_async(mqtt_server)
     client.loop_start()
     gameState = GameState()
     ledState = LEDState()

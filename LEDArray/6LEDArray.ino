@@ -1,30 +1,30 @@
-#include <FastLED.h>
-#include <PubSubClient.h>
 #include <WiFiNINA.h>
+#include <PubSubClient.h>
+#include <FastLED.h>
 
-const char* ssid = "INSERT_WIFI_NETWORK_HERE";
-const char* password = "ENTER_PASSWORD_HERE";
+// Define WiFi credentials
+const char* ssid = "ATTTMBDHWa";
+const char* password = "fx7eyh+gdjnn";
+
+// Define MQTT parameters
 const char mqtt_server[] = "mqtt.eclipseprojects.io";
 const char subscribeTopic[] = "ece180d/team3/reverseabomb/ledcontroller";
 
+// Create a WiFi client and MQTT client
 WiFiClient wifiClient;
 PubSubClient mqtt(wifiClient);
 
-// Number of LED arrays
-#define NUM_LED_ARRAYS 6
+// Define the number of LED strips and the number of LEDs per strip
+#define NUM_STRIPS 6
+#define NUM_LEDS_PER_STRIP 11
 
-// How many leds are in each strip?
-#define NUM_LEDS_PER_ARRAY 90
+// Define the data pins for each LED strip
+const int DATA_PINS[NUM_STRIPS] = {3, 4, 5, 6, 7, 8};
 
-// Specify the data pins for each LED array
-const int DATA_PINS[NUM_LED_ARRAYS] = {3, 4, 5, 6, 7, 8};
+// Create a 2-dimensional array for the LEDs
+CRGB leds[NUM_STRIPS][NUM_LEDS_PER_STRIP];
 
-
-#define TOKEN ""
-#define DEVICEID ""
-
-CRGB leds[NUM_LED_ARRAYS][NUM_LEDS_PER_ARRAY]; //2D array to help control the 6 LED arrays 
-
+// Function to connect to WiFi
 void setup_wifi() {
   delay(10);
   Serial.println();
@@ -37,84 +37,79 @@ void setup_wifi() {
     Serial.print(".");
   }
 
-  randomSeed(micros());
   Serial.println("");
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
 }
 
+// Function to reconnect to MQTT broker
 void reconnect() {
   while (!mqtt.connected()) {
-    if (mqtt.connect(DEVICEID, TOKEN, NULL)) {
+    Serial.println("Attempting MQTT connection...");
+    if (mqtt.connect("arduinoClient")) {
       Serial.println("Connected to MQTT broker");
-      digitalWrite(LED_BUILTIN, HIGH);
+      mqtt.subscribe(subscribeTopic);
     } else {
-      Serial.print("failed to connect to MQTT broker, rc=");
+      Serial.print("Failed, rc=");
       Serial.print(mqtt.state());
-      Serial.println("try again in 5 seconds");
-      digitalWrite(LED_BUILTIN, LOW);
+      Serial.println(" try again in 5 seconds");
       delay(5000);
     }
   }
 }
 
+// Callback function to handle incoming MQTT messages
 void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Message arrived in topic: ");
   Serial.println(topic);
 
-  Serial.print("LED State:");
-  for (int i = 0; i < length; i++) {
-    Serial.print((char)payload[i]);
+  // Print the received message
+  Serial.println("LED State:");
+  for (unsigned int i = 0; i < length; i++) {
+    Serial.write(payload[i]);
   }
   Serial.println();
 
-  //now with the read data, update the LEDS for the gameboard
-  for (int stripIndex = 0; stripIndex < NUM_LED_ARRAYS; stripIndex++) 
-  {
-    const char* stripKey = ("LED_Strip_" + String(stripIndex)).c_str();
-    const JsonArray& pixels = doc[stripKey]["pixels"];
-
-    for (int pixelIndex = 0; pixelIndex < pixels.size(); pixelIndex++) 
-    {
-      const char* color = pixels[pixelIndex];
-      CRGB ledColor;
-
-      if (strcmp(color, "black") == 0) 
-      {
-        ledColor = CRGB::Black;
-      } 
-      else if (strcmp(color, "red") == 0) 
-      {
-        ledColor = CRGB::Red;
-      } 
-      else 
-      {
-        // Handle other colors if needed
-        ledColor = CRGB::Black;
+  // Ensure the payload length matches the number of LEDs
+  if (length == NUM_STRIPS * NUM_LEDS_PER_STRIP) {
+    for (int strip = 0; strip < NUM_STRIPS; strip++) {
+      for (int led = 0; led < NUM_LEDS_PER_STRIP; led++) {
+        int index = strip * NUM_LEDS_PER_STRIP + led;
+        if (payload[index] == 'r') {
+          leds[strip][led] = CRGB::Red;
+        } else {
+          leds[strip][led] = CRGB::Black;
+        }
       }
-
-      leds[stripIndex][pixelIndex] = ledColor;
     }
+    // Show the LEDs
+    FastLED.show();
+  } else {
+    Serial.println("Payload length mismatch.");
   }
-
-  FastLED.show();
 }
 
 void setup() {
+  Serial.begin(9600);
   setup_wifi();
   mqtt.setServer(mqtt_server, 1883);
-  delay(2000);
+  mqtt.setCallback(callback);
+  mqtt.subscribe(subscribeTopic); // Subscribe to MQTT topic
 
-  for (int i = 0; i < NUM_LED_ARRAYS; i++) {
-    FastLED.addLeds<WS2812B, DATA_PINS[i], RGB>(leds[i], NUM_LEDS_PER_ARRAY);
+  // Initialize each LED strip
+  for (int i = 0; i < NUM_STRIPS; i++) {
+    FastLED.addLeds<WS2812B, DATA_PINS[i], GRB>(leds[i], NUM_LEDS_PER_STRIP);
   }
 }
 
 void loop() {
+  // Check if MQTT client is connected
   if (!mqtt.connected()) {
+    // If not connected, attempt to reconnect
     reconnect();
   }
-
+  
+  // Check for MQTT messages and handle callbacks
   mqtt.loop();
 }
