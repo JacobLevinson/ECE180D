@@ -18,7 +18,7 @@ import multiprocessing
 
 # Import the pygame module
 import pygame
-
+import cv2
 # Import random for random numbers
 import random
 
@@ -300,6 +300,41 @@ def draw_button(screen, msg, x, y, w, h, ic, ac):
     textRect = textSurf.get_rect()
     textRect.center = ((x + (w // 2)), (y + (h // 2)))
     screen.blit(textSurf, textRect)
+
+
+def find_positions(queue):
+    # Change the index to your camera's index if needed
+    cap = cv2.VideoCapture(0)
+
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            continue
+
+        # Your logic to find the positions of two items
+        # Here I'm just using dummy values for demonstration
+        xpos_1, ypos_1 = 100, 100  # Replace with actual detection logic
+        xpos_2, ypos_2 = 200, 200  # Replace with actual detection logic
+
+        # Try to put the positions in the queue without blocking
+        try:
+            if queue.full():
+                queue.get_nowait()  # Remove the oldest item if the queue is full
+            queue.put_nowait((xpos_1, ypos_1, xpos_2, ypos_2))
+        except Exception as e:
+            print(f"Queue operation failed: {e}")
+
+        # Display the frame (for debugging purposes)
+        cv2.imshow('Frame', frame)
+
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+
+
 def main():
     client = mqtt.Client()
     client.on_connect = on_connect
@@ -341,7 +376,11 @@ def main():
     speech_process = multiprocessing.Process(
         target=speech_recognition_function, args=(event_queue,))
     speech_process.start()
-
+    #position queue
+    position_queue = multiprocessing.Queue(maxsize=10)
+    position_process = multiprocessing.Process(target=find_positions, args=(position_queue,))
+    position_process.start()
+    xpos_1, ypos_1, xpos_2, ypos_2 = 0, 0, 0, 0
     # Variable to keep our main loop running
     running = False
 
@@ -398,7 +437,12 @@ def main():
     screen.fill((0, 0, 0))  # Change the RGB value to your desired background color
     pygame.display.flip()
     pygame.display.set_caption('Reverse-A-Bomb')
-    # Our main loop
+
+
+
+
+
+    # Our main game loop
     while running:
         # Reset LED state
         for i in range(0, LED_STRIP_COUNT):
@@ -413,7 +457,9 @@ def main():
                 pygame.event.post(pygame.event.Event(
                     VOICE_EVENT, command=message['command']))
 
-        # xpos_1, ypos_1, xpos_2, ypos_2 = get_position() # get position of each player
+        # Drain the queue to get the most recent position data
+        while not position_queue.empty():
+            xpos_1, ypos_1, xpos_2, ypos_2 = position_queue.get()
 
         # Look at every event in the queue
         for event in pygame.event.get():
