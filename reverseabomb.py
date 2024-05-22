@@ -18,7 +18,7 @@ import multiprocessing
 
 # Import the pygame module
 import pygame
-
+import cv2
 # Import random for random numbers
 import random
 
@@ -214,47 +214,27 @@ class GameState:
             ledState.colors[i][int(self.bomb_positions[i])] = "red"
 
 
-# This class is to manage the current positions of the leds. *********************************
+# This class is to manage the current positions of the LEDs
 class LEDState:
     _instance = None
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
-            cls._instance = super(LEDState, cls).__new__(
-                cls, *args, **kwargs)
-
-            # Initialize your singleton instance here
-            # Here we have an initialization of a 2D List, the first list is for the specific led strip
-            # and the second list is for the index of the specific led in the strip
-            # initially, set all leds to off a.k.a "black"
-            cls._instance.colors = [["black" for _ in range(LED_STRIP_LENGTH)] for _ in range(LED_STRIP_COUNT)]
+            cls._instance = super(LEDState, cls).__new__(cls, *args, **kwargs)
+            
+            #This creates a 2 dimmensional list of the led arrays and the pixels for each array
+            #this initially sets the values to "b" for black meaning that they are all turned off
+            cls._instance.colors = [["b" for _ in range(LED_STRIP_LENGTH)] for _ in range(LED_STRIP_COUNT)]
         return cls._instance
 
-    def send_LED_state(self, client, gameState, strip_length, strip_count):
+    def send_LED_state(self, client, gameState):
+        # Flatten the 2D LED state list into a single string
+        led_state_str = ''.join([''.join(strip) for strip in self.colors])
         
-        # Convert the LED positions list to a comma-separated string
-        led_state_str = ''.join(self.colors) 
-
-        # # Set LEDs at bomb positions to a different color (e.g., "red")
-        # for strip_index, pixel in enumerate(gameState.bomb_positions):
-        #     # Convert position to an integer (assuming it's a float)
-        #     pixel = int(pixel)
-
-        #     # Ensure the position is within the LED strip length
-        #     pixel = max(0, min(pixel, strip_length - 1))
-
-        #     # Update the dictionary with LED states
-        #     led_state_dict[f"LED_Strip_{strip_index}"] = {
-        #         "pixels": self._instance.colors[strip_index]}
-        #     # Outputs in the form of:
-        #     #   "LED_Strip_0": {"pixels": ["black", "black", ...]},
-        #     #   "LED_Strip_1": {"pixels": ["black", "black", ...]},
-
-
         # Publish the LED state to the LED controller topic with QoS 0
         client.publish(led_controller_topic, led_state_str, qos=0)
         print("LED state published to the LED controller topic.")
-        print("LED positions:", led_position)  # Print LED positions for debugging
+        print("LED state string:", led_state_str)  # Print LED state for debugging
 
 # functions for the client to puslish and subscribe data ************************
 def on_connect(client, userdata, flags, rc):
@@ -300,6 +280,41 @@ def draw_button(screen, msg, x, y, w, h, ic, ac):
     textRect = textSurf.get_rect()
     textRect.center = ((x + (w // 2)), (y + (h // 2)))
     screen.blit(textSurf, textRect)
+
+
+def find_positions(queue):
+    # Change the index to your camera's index if needed
+    cap = cv2.VideoCapture(0)
+
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            continue
+
+        # Your logic to find the positions of two items
+        # Here I'm just using dummy values for demonstration
+        xpos_1, ypos_1 = 100, 100  # Replace with actual detection logic
+        xpos_2, ypos_2 = 200, 200  # Replace with actual detection logic
+
+        # Try to put the positions in the queue without blocking
+        try:
+            if queue.full():
+                queue.get_nowait()  # Remove the oldest item if the queue is full
+            queue.put_nowait((xpos_1, ypos_1, xpos_2, ypos_2))
+        except Exception as e:
+            print(f"Queue operation failed: {e}")
+
+        # Display the frame (for debugging purposes)
+        cv2.imshow('Frame', frame)
+
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+
+
 def main():
     client = mqtt.Client()
     client.on_connect = on_connect
@@ -341,7 +356,11 @@ def main():
     speech_process = multiprocessing.Process(
         target=speech_recognition_function, args=(event_queue,))
     speech_process.start()
-
+    #position queue
+    position_queue = multiprocessing.Queue(maxsize=10)
+    position_process = multiprocessing.Process(target=find_positions, args=(position_queue,))
+    position_process.start()
+    xpos_1, ypos_1, xpos_2, ypos_2 = 0, 0, 0, 0
     # Variable to keep our main loop running
     running = False
 
@@ -398,7 +417,12 @@ def main():
     screen.fill((0, 0, 0))  # Change the RGB value to your desired background color
     pygame.display.flip()
     pygame.display.set_caption('Reverse-A-Bomb')
-    # Our main loop
+
+
+
+
+
+    # Our main game loop
     while running:
         # Reset LED state
         for i in range(0, LED_STRIP_COUNT):
@@ -413,7 +437,9 @@ def main():
                 pygame.event.post(pygame.event.Event(
                     VOICE_EVENT, command=message['command']))
 
-        # xpos_1, ypos_1, xpos_2, ypos_2 = get_position() # get position of each player
+        # Drain the queue to get the most recent position data
+        while not position_queue.empty():
+            xpos_1, ypos_1, xpos_2, ypos_2 = position_queue.get()
 
         # Look at every event in the queue
         for event in pygame.event.get():
