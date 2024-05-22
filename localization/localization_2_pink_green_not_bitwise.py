@@ -10,6 +10,7 @@ def detect_colors(frame):
     upper_pink = np.array([170, 255, 255])  # Adjust values as needed
 
     # Define range of green color in HSV
+    # Green is Yellow in Practice
     lower_green = np.array([25, 80, 200])  # Adjust values as needed
     upper_green = np.array([50, 170, 255])  # Adjust values as needed
     
