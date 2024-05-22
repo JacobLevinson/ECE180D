@@ -6,8 +6,11 @@ def detect_colors(frame):
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
     # Define range of pink color in HSV
-    lower_pink = np.array([150, 50, 50])  # Adjust values as needed
-    upper_pink = np.array([170, 255, 255])  # Adjust values as needed
+    # Average: [(173, 145, 200)]
+    lower_pink = np.array([163,105,160])  # Adjust values as needed
+    upper_pink = np.array([183,185,240])  # Adjust values as needed
+    # lower_pink = np.array([150, 50, 50])  # Adjust values as needed
+    # upper_pink = np.array([170, 255, 255])  # Adjust values as needed
 
     # Define range of green color in HSV
     # Green is Yellow in Practice
@@ -59,8 +62,8 @@ def detect_colors(frame):
         red_dot_pos_green = center_green
 
     # If red dot positions are found, print their coordinates
-    # if red_dot_pos_pink:
-    #     print("Pink Dot Position (x, y):", red_dot_pos_pink)
+    if red_dot_pos_pink:
+        print("Pink Dot Position (x, y):", red_dot_pos_pink)
     if red_dot_pos_green:
         print("Green Dot Position (x, y):", red_dot_pos_green)
 
