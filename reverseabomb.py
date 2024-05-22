@@ -214,47 +214,27 @@ class GameState:
             ledState.colors[i][int(self.bomb_positions[i])] = "red"
 
 
-# This class is to manage the current positions of the leds. *********************************
+# This class is to manage the current positions of the LEDs
 class LEDState:
     _instance = None
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
-            cls._instance = super(LEDState, cls).__new__(
-                cls, *args, **kwargs)
-
-            # Initialize your singleton instance here
-            # Here we have an initialization of a 2D List, the first list is for the specific led strip
-            # and the second list is for the index of the specific led in the strip
-            # initially, set all leds to off a.k.a "black"
-            cls._instance.colors = [["black" for _ in range(LED_STRIP_LENGTH)] for _ in range(LED_STRIP_COUNT)]
+            cls._instance = super(LEDState, cls).__new__(cls, *args, **kwargs)
+            
+            #This creates a 2 dimmensional list of the led arrays and the pixels for each array
+            #this initially sets the values to "b" for black meaning that they are all turned off
+            cls._instance.colors = [["b" for _ in range(LED_STRIP_LENGTH)] for _ in range(LED_STRIP_COUNT)]
         return cls._instance
 
-    def send_LED_state(self, client, gameState, strip_length, strip_count):
+    def send_LED_state(self, client, gameState):
+        # Flatten the 2D LED state list into a single string
+        led_state_str = ''.join([''.join(strip) for strip in self.colors])
         
-        # Convert the LED positions list to a comma-separated string
-        led_state_str = ''.join(self.colors) 
-
-        # # Set LEDs at bomb positions to a different color (e.g., "red")
-        # for strip_index, pixel in enumerate(gameState.bomb_positions):
-        #     # Convert position to an integer (assuming it's a float)
-        #     pixel = int(pixel)
-
-        #     # Ensure the position is within the LED strip length
-        #     pixel = max(0, min(pixel, strip_length - 1))
-
-        #     # Update the dictionary with LED states
-        #     led_state_dict[f"LED_Strip_{strip_index}"] = {
-        #         "pixels": self._instance.colors[strip_index]}
-        #     # Outputs in the form of:
-        #     #   "LED_Strip_0": {"pixels": ["black", "black", ...]},
-        #     #   "LED_Strip_1": {"pixels": ["black", "black", ...]},
-
-
         # Publish the LED state to the LED controller topic with QoS 0
         client.publish(led_controller_topic, led_state_str, qos=0)
         print("LED state published to the LED controller topic.")
-        print("LED positions:", led_position)  # Print LED positions for debugging
+        print("LED state string:", led_state_str)  # Print LED state for debugging
 
 # functions for the client to puslish and subscribe data ************************
 def on_connect(client, userdata, flags, rc):
