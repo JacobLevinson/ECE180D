@@ -1,7 +1,6 @@
 #include <WiFiNINA.h>
 #include <PubSubClient.h>
 #include <FastLED.h>
-#include <ArduinoJson.h>
 
 // Define WiFi credentials
 const char* ssid = "ATTTMBDHWa";
@@ -72,64 +71,38 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
   Serial.println();
 
-  // Allocate a temporary JsonDocument
-  StaticJsonDocument<2048> doc;
-
-  // Deserialize the JSON payload
-  DeserializationError error = deserializeJson(doc, payload, length);
-  if (error) {
-    Serial.print("deserializeJson() failed: ");
-    Serial.println(error.f_str());
-    return;
-  }
-
-  // Update the LEDs for each strip
-  for (int stripIndex = 0; stripIndex < NUM_STRIPS; stripIndex++) {
-    char stripKey[16];
-    sprintf(stripKey, "LED_Strip_%d", stripIndex);
-
-    if (doc.containsKey(stripKey)) {
-      JsonArray pixels = doc[stripKey]["pixels"];
-
-      for (int pixelIndex = 0; pixelIndex < pixels.size(); pixelIndex++) {
-        const char* color = pixels[pixelIndex];
-        CRGB ledColor;
-
-        if (strcmp(color, "black") == 0) {
-          ledColor = CRGB::Black;
-        } else if (strcmp(color, "red") == 0) {
-          ledColor = CRGB::Red;
-        } else if (strcmp(color, "green") == 0) {
-          ledColor = CRGB::Green;
+  // Ensure the payload length matches the total number of LEDs
+  if (length == NUM_STRIPS * NUM_LEDS_PER_STRIP) {
+    for (int strip = 0; strip < NUM_STRIPS; strip++) {
+      for (int led = 0; led < NUM_LEDS_PER_STRIP; led++) {
+        int index = strip * NUM_LEDS_PER_STRIP + led;
+        if (payload[index] == 'r') {
+          leds[strip][led] = CRGB::Red;
         } else {
-          // Handle other colors if needed
-          ledColor = CRGB::Black;
+          leds[strip][led] = CRGB::Black;
         }
-
-        leds[stripIndex][pixelIndex] = ledColor;
       }
     }
-  }
+    // Show the LEDs
+    FastLED.show();
 
-  // Show the LEDs
-  FastLED.show();
-
-  // Print out the values of the LED arrays for debugging
-  Serial.println("Current LED States:");
-  for (int stripIndex = 0; stripIndex < NUM_STRIPS; stripIndex++) {
-    Serial.print("LED_Strip_");
-    Serial.print(stripIndex);
-    Serial.print(": ");
-    for (int pixelIndex = 0; pixelIndex < NUM_LEDS_PER_STRIP; pixelIndex++) {
-      if (leds[stripIndex][pixelIndex] == CRGB::Red) {
-        Serial.print("red ");
-      } else if (leds[stripIndex][pixelIndex] == CRGB::Green) {
-        Serial.print("green ");
-      } else {
-        Serial.print("black ");
+    // Print out the values of the LED arrays for debugging
+    Serial.println("Current LED States:");
+    for (int strip = 0; strip < NUM_STRIPS; strip++) {
+      Serial.print("LED_Strip_");
+      Serial.print(strip);
+      Serial.print(": ");
+      for (int led = 0; led < NUM_LEDS_PER_STRIP; led++) {
+        if (leds[strip][led] == CRGB::Red) {
+          Serial.print("red ");
+        } else {
+          Serial.print("black ");
+        }
       }
+      Serial.println();
     }
-    Serial.println();
+  } else {
+    Serial.println("Payload length mismatch.");
   }
 }
 
