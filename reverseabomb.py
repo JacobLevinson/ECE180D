@@ -74,13 +74,33 @@ def speech_recognition_function(event_queue):
     recognizer.energy_threshold = 300
     recognizer.pause_threshold = 0.5
 
+    # Function to find the index of a microphone by its name
+    def find_microphone_index(name):
+        for index, mic_name in enumerate(sr.Microphone.list_microphone_names()):
+            if name in mic_name:
+                return index
+        return None
+
+
     time.sleep(1)
-
-
     with sr.Microphone() as source:
         recognizer.adjust_for_ambient_noise(source, duration=0.5)
     while True:
-        with sr.Microphone() as source:
+        # Name of the microphone you want to use
+        microphone_name = "Microphone (USBAudio1.0)"
+
+        # Find the index of the microphone by its name
+        microphone_index = find_microphone_index(microphone_name)
+
+        # Check if the microphone index is found
+        if microphone_index is not None:
+            # Initialize the chosen microphone by index
+            chosen_microphone = sr.Microphone(device_index=microphone_index)
+            print(f"Using microphone '{microphone_name}' (index: {microphone_index})")
+        else:
+            print(f"Microphone '{microphone_name}' not found.")
+
+        with chosen_microphone as source:
             try:
                 audio = recognizer.listen(source)
                 #print("Got it! Now to recognize it...")
