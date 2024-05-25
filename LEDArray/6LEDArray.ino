@@ -21,7 +21,7 @@ PubSubClient mqtt(wifiClient);
 // Define the data pins for each LED strip
 const int DATA_PINS[NUM_STRIPS] = {3, 4, 5, 6, 7, 8};
 
-// Create a 2-dimensional array for the LEDs
+// Create a 2-dimensional array for the LEDs. We have The num_strips as the row, and pixels as the columns
 CRGB leds[NUM_STRIPS][NUM_LEDS_PER_STRIP];
 
 // Function to connect to WiFi
@@ -43,7 +43,7 @@ void setup_wifi() {
   Serial.println(WiFi.localIP());
 }
 
-// Function to reconnect to MQTT broker
+// Function to reconnect to MQTT broker if disconnected
 void reconnect() {
   while (!mqtt.connected()) {
     Serial.println("Attempting MQTT connection...");
@@ -64,21 +64,28 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Message arrived in topic: ");
   Serial.println(topic);
 
-  // Print the received message
-  Serial.println("LED State:");
-  for (unsigned int i = 0; i < length; i++) {
-    Serial.write(payload[i]);
-  }
-  Serial.println();
+  // // DEBUGGING: Print the received message
+  // Serial.println("LED State:");
+  // for (unsigned int i = 0; i < length; i++) {
+  //   Serial.write(payload[i]); //write each byte(character) to the screen
+  // }
+  // Serial.println();
 
   // Ensure the payload length matches the number of LEDs
-  if (length == NUM_STRIPS * NUM_LEDS_PER_STRIP) {
-    for (int strip = 0; strip < NUM_STRIPS; strip++) {
-      for (int led = 0; led < NUM_LEDS_PER_STRIP; led++) {
+  if (length == NUM_STRIPS * NUM_LEDS_PER_STRIP) 
+  {
+    //if the payload length is correct, then we can update the led arrays
+    for (int strip = 0; strip < NUM_STRIPS; strip++) 
+    {
+      for (int led = 0; led < NUM_LEDS_PER_STRIP; led++) 
+      {
         int index = strip * NUM_LEDS_PER_STRIP + led;
-        if (payload[index] == 'r') {
+        if (payload[index] == 'r') 
+        {
           leds[strip][led] = CRGB::Red;
-        } else {
+        } 
+        else 
+        {
           leds[strip][led] = CRGB::Black;
         }
       }
@@ -97,10 +104,13 @@ void setup() {
   mqtt.setCallback(callback);
   mqtt.subscribe(subscribeTopic); // Subscribe to MQTT topic
 
-  // Initialize each LED strip
-  for (int i = 0; i < NUM_STRIPS; i++) {
-    FastLED.addLeds<WS2812B, DATA_PINS[i], GRB>(leds[i], NUM_LEDS_PER_STRIP);
-  }
+  // tell FastLED there's 6 WS2812B Led strips with 90 pixels each
+  FastLED.addLeds<WS2812B, 3, GRB>(leds[0], NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<WS2812B, 4, GRB>(leds[1], NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<WS2812B, 5, GRB>(leds[2], NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<WS2812B, 6, GRB>(leds[3], NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<WS2812B, 7, GRB>(leds[4], NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<WS2812B, 8, GRB>(leds[5], NUM_LEDS_PER_STRIP);
 }
 
 void loop() {
