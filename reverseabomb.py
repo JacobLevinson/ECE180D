@@ -182,10 +182,13 @@ class GameState:
                   player_id} for bomb {bomb_id}")
 
     def updatePoisitions(self, ledState):
+        
+        ##note to jacob, for this code you need to be able to save the previous state so that after the 
+        #powerup has worn off you can set it back to the old state, otherwise the old position is lost
         for i in range(0, LED_STRIP_COUNT):
             if(self.powerup_state == "FREEZE"):
                 # Do not change bomb positions
-                ledState.colors[i] = ["blue" for _ in range(LED_STRIP_LENGTH)]
+                ledState.ledArrays[i] = ["b" for _ in range(LED_STRIP_LENGTH)]
             elif(self.powerup_state == "REVERSE"):
                 # Reverse all bomb directions
                 self.bomb_directions[i] = -1 * self.bomb_directions[i]
@@ -209,9 +212,9 @@ class GameState:
                     print(f"Bomb {i} exploded!")
                     # Reset bomb position
                     self.bomb_positions[i] = LED_STRIP_LENGTH/2
-                    ledState.colors[i] = ["red" for _ in range(LED_STRIP_LENGTH)]
+                    ledState.ledArrays[i] = ["r" for _ in range(LED_STRIP_LENGTH)]
             # Always set the bomb position to red
-            ledState.colors[i][int(self.bomb_positions[i])] = "red"
+            ledState.ledArrays[i][int(self.bomb_positions[i])] = "r"
 
 
 # This class is to manage the current positions of the LEDs
@@ -224,12 +227,12 @@ class LEDState:
             
             #This creates a 2 dimmensional list of the led arrays and the pixels for each array
             #this initially sets the values to "b" for black meaning that they are all turned off
-            cls._instance.colors = [["b" for _ in range(LED_STRIP_LENGTH)] for _ in range(LED_STRIP_COUNT)]
+            cls._instance.ledArrays = [["b" for _ in range(LED_STRIP_LENGTH)] for _ in range(LED_STRIP_COUNT)]
         return cls._instance
 
     def send_LED_state(self, client, gameState):
-        # Flatten the 2D LED state list into a single string
-        led_state_str = ''.join([''.join(strip) for strip in self.colors])
+        # Flatten the 2D LED state list into a single string, bassically appending each row to each other
+        led_state_str = ''.join([''.join(strip) for strip in self.ledArrays])
         
         # Publish the LED state to the LED controller topic with QoS 0
         client.publish(led_controller_topic, led_state_str, qos=0)
@@ -426,7 +429,7 @@ def main():
     while running:
         # Reset LED state
         for i in range(0, LED_STRIP_COUNT):
-            ledState.colors[i] = ["black" for _ in range(LED_STRIP_LENGTH)]
+            ledState.ledArrays[i] = ["b" for _ in range(LED_STRIP_LENGTH)]
 
         # Process any speech and add it to events
         # Check for new speech recognition events
@@ -497,7 +500,7 @@ def main():
         # DEMO SECTION: Just show LEDs in pygame window
         for i in range(0, LED_STRIP_COUNT):
             for j in range(0, LED_STRIP_LENGTH):
-                pygame.draw.rect(screen, ledState.colors[i][j], [
+                pygame.draw.rect(screen, ledState.ledArrays[i][j], [
                                  j*10, i*15, 10, 15])
 
         # Update Powerup Timer
