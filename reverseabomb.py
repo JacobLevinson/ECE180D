@@ -413,6 +413,8 @@ def main():
     # Cleanup processes
     speech_process.terminate()
     speech_process.join()
+    position_process.terminate()
+    position_process.join()
 
 
 if __name__ == "__main__":
