@@ -181,7 +181,7 @@ class GameState:
             print(f"Invalid reverse bomb request from player {
                   player_id} for bomb {bomb_id}")
 
-    def updatePoisitions(self, ledState):
+    def updatePositions(self, ledState):
         
         ##note to jacob, for this code you need to be able to save the previous state so that after the 
         #powerup has worn off you can set it back to the old state, otherwise the old position is lost
@@ -491,7 +491,7 @@ def main():
                     break
 
         # Monitor if bombs explode
-        gameState.updatePoisitions(ledState) #updates positions and then the ledstate
+        gameState.updatePositions(ledState) #updates positions and then the ledstate
 
         # Send LED state to the LED strips
         ledState.send_LED_state(
