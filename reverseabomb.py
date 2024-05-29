@@ -15,7 +15,7 @@ import random
 import speech_recognition as sr
 import time
 import multiprocessing
-
+from localization import *
 # Import the pygame module
 import pygame
 import cv2
@@ -285,37 +285,6 @@ def draw_button(screen, msg, x, y, w, h, ic, ac):
     screen.blit(textSurf, textRect)
 
 
-def find_positions(queue):
-    # Change the index to your camera's index if needed
-    cap = cv2.VideoCapture(1)
-
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            continue
-
-        # Your logic to find the positions of two items
-        # Here I'm just using dummy values for demonstration
-        xpos_1, ypos_1 = 100, 100  # Replace with actual detection logic
-        xpos_2, ypos_2 = 200, 200  # Replace with actual detection logic
-
-        # Try to put the positions in the queue without blocking
-        try:
-            if queue.full():
-                queue.get_nowait()  # Remove the oldest item if the queue is full
-            queue.put_nowait((xpos_1, ypos_1, xpos_2, ypos_2))
-        except Exception as e:
-            print(f"Queue operation failed: {e}")
-
-        # Display the frame (for debugging purposes)
-        cv2.imshow('Frame', frame)
-
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
-    cap.release()
-    cv2.destroyAllWindows()
-
 
 
 def main():
@@ -371,8 +340,6 @@ def main():
     ## Start the Game
 
     # Code to allow user to click on pgame button to start or start the game via voice
-
-
 
 
     # Setup the display
