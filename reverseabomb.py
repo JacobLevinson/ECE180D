@@ -287,7 +287,7 @@ def draw_button(screen, msg, x, y, w, h, ic, ac):
 
 def find_positions(queue):
     # Change the index to your camera's index if needed
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(1)
 
     while True:
         ret, frame = cap.read()
