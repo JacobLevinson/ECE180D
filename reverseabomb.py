@@ -313,7 +313,7 @@ def main():
 
 
 
-
+    ###############################################################
 
     # Our main game loop
     while running:
@@ -333,7 +333,10 @@ def main():
         # Drain the queue to get the most recent position data
         while not position_queue.empty():
             xpos_1, ypos_1, xpos_2, ypos_2 = position_queue.get()
-
+        #process the positions to get lanes
+        PLAYER1_ROW = map_coord_to_lane(ypos_1)
+        PLAYER2_ROW = map_coord_to_lane(ypos_2)
+        
         # Look at every event in the queue
         for event in pygame.event.get():
             # Did the user hit a key?

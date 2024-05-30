@@ -2,6 +2,21 @@ import cv2
 import numpy as np
 
 
+def map_coord_to_lane(y_coord):
+    if y_coord <= 139:
+        return 0
+    elif 140 <= y_coord <= 164:
+        return 1
+    elif 165 <= y_coord <= 190:
+        return 2
+    elif 191 <= y_coord <= 217:
+        return 3
+    elif 218 <= y_coord <= 245:
+        return 4
+    elif y_coord >= 246:
+        return 5
+    else:
+        return None  # or some default value or raise an exception
 def detect_colors(frame):
     # Convert frame from BGR to HSV color space
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
