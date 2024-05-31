@@ -184,13 +184,6 @@ def on_message(client, userdata, msg):
             print(f"SLAP received from wristband 2")
             custom_event = pygame.event.Event(SLAP_2)
             pygame.event.post(custom_event)
-        case "JUMP":
-            print(f"JUMP action requested by wristband {wristband_id}")
-            # Additional code for JUMP action can go here
-        case "RUN":
-            print(f"RUN action detected from wristband {wristband_id}")
-            # Additional code for RUN action can go here
-        case _:
             print(f"Unhandled message: {
                   message_content} from wristband {wristband_id}")
 
