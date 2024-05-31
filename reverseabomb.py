@@ -345,11 +345,11 @@ def main():
             elif event.type == SLAP_1:
                 print("SLAP 1 detected")
                 slap_sound.play()
-                gameState.reverse_bomb(1, 0)
+                gameState.reverse_bomb(1, PLAYER1_ROW)
             elif event.type == SLAP_2:
                 print("SLAP 2 detected")
                 slap_sound.play()
-                gameState.reverse_bomb(2, 0)
+                gameState.reverse_bomb(2, PLAYER2_ROW)
             elif event.type == VOICE_EVENT:
                 # Handle voice command events
                 if event.command == "FREEZE":
