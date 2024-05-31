@@ -20,7 +20,7 @@ Jacob Levinson
 
 Laura Gonzalez
 
-Mi nombre es Joseph
+Joseph Kwon 
 
 William Escobar
 
