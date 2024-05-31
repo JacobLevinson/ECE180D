@@ -20,7 +20,7 @@ Jacob Levinson
 
 Laura Gonzalez
 
-Joseph Kwon 123124124
+Joseph Kwon
 
 William Escobar
 
