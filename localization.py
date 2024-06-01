@@ -20,7 +20,8 @@ def map_coord_to_lane(y_coord):
 def detect_colors(frame):
     # Convert frame from BGR to HSV color space
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-
+    center_green = None
+    center_pink = None
     # Define range of pink color in HSV
     # Average: [(173, 145, 200)]
     lower_pink = np.array([163, 105, 160])  # Adjust values as needed
