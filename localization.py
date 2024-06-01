@@ -48,8 +48,8 @@ def detect_colors(frame):
         mask_green, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     # Initialize variables to store red dot positions
-    red_dot_pos_pink = None
-    red_dot_pos_green = None
+    red_dot_pos_pink = 0
+    red_dot_pos_green = 0
 
     # Process pink contours
     if contours_pink:
@@ -85,10 +85,10 @@ def detect_colors(frame):
         red_dot_pos_green = center_green
 
     # If red dot positions are found, print their coordinates
-    # if red_dot_pos_pink:
-    #     print("Pink Dot Position (x, y):", red_dot_pos_pink)
-    # if red_dot_pos_green:
-    #     print("Green Dot Position (x, y):", red_dot_pos_green)
+    if center_pink is None:
+        center_pink = (0, 0)
+    if center_green is None:
+        center_green = (0, 0)
 
     return center_green, center_pink, frame
 
