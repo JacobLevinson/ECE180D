@@ -3,8 +3,8 @@
 #include <FastLED.h>
 
 // Define WiFi credentials
-const char* ssid = "William";
-const char* password = "12345678";
+const char *ssid = "William";
+const char *password = "12345678";
 
 // Define MQTT parameters
 const char mqtt_server[] = "mqtt.eclipseprojects.io";
@@ -25,14 +25,16 @@ const int DATA_PINS[NUM_STRIPS] = {3, 4, 5, 6, 7, 8};
 CRGB leds[NUM_STRIPS][NUM_LEDS_PER_STRIP];
 
 // Function to connect to WiFi
-void setup_wifi() {
+void setup_wifi()
+{
   delay(10);
   Serial.println();
   Serial.print("Connecting to ");
   Serial.println(ssid);
   WiFi.begin(ssid, password);
 
-  while (WiFi.status() != WL_CONNECTED) {
+  while (WiFi.status() != WL_CONNECTED)
+  {
     delay(500);
     Serial.print(".");
   }
@@ -44,13 +46,18 @@ void setup_wifi() {
 }
 
 // Function to reconnect to MQTT broker if disconnected
-void reconnect() {
-  while (!mqtt.connected()) {
+void reconnect()
+{
+  while (!mqtt.connected())
+  {
     Serial.println("Attempting MQTT connection...");
-    if (mqtt.connect("arduinoClient")) {
+    if (mqtt.connect("arduinoClient"))
+    {
       Serial.println("Connected to MQTT broker");
       mqtt.subscribe(subscribeTopic);
-    } else {
+    }
+    else
+    {
       Serial.print("Failed, rc=");
       Serial.print(mqtt.state());
       Serial.println(" try again in 5 seconds");
@@ -60,7 +67,8 @@ void reconnect() {
 }
 
 // Callback function to handle incoming MQTT messages
-void callback(char* topic, byte* payload, unsigned int length) {
+void callback(char *topic, byte *payload, unsigned int length)
+{
   Serial.print("Message arrived in topic: ");
   Serial.println(topic);
 
@@ -72,19 +80,27 @@ void callback(char* topic, byte* payload, unsigned int length) {
   // Serial.println();
 
   // Ensure the payload length matches the number of LEDs
-  if (length == NUM_STRIPS * NUM_LEDS_PER_STRIP) 
+  if (length == NUM_STRIPS * NUM_LEDS_PER_STRIP)
   {
-    //if the payload length is correct, then we can update the led arrays
-    for (int strip = 0; strip < NUM_STRIPS; strip++) 
+    // if the payload length is correct, then we can update the led arrays
+    for (int strip = 0; strip < NUM_STRIPS; strip++)
     {
-      for (int led = 0; led < NUM_LEDS_PER_STRIP; led++) 
+      for (int led = 0; led < NUM_LEDS_PER_STRIP; led++)
       {
         int index = strip * NUM_LEDS_PER_STRIP + led;
-        if (payload[index] == 'r') 
+        if (payload[index] == 'r')
+        {
+          leds[strip][led] = CRGB::Green;
+        }
+        else if (payload[index] == 'g')
         {
           leds[strip][led] = CRGB::Red;
-        } 
-        else 
+        }
+        else if (payload[index] == 'b')
+        {
+          leds[strip][led] = CRGB::Blue;
+        }
+        else if (payload(index == 'o'))
         {
           leds[strip][led] = CRGB::Black;
         }
@@ -92,12 +108,15 @@ void callback(char* topic, byte* payload, unsigned int length) {
     }
     // Show the LEDs
     FastLED.show();
-  } else {
+  }
+  else
+  {
     Serial.println("Payload length mismatch.");
   }
 }
 
-void setup() {
+void setup()
+{
   Serial.begin(9600);
   setup_wifi();
   mqtt.setServer(mqtt_server, 1883);
@@ -113,13 +132,15 @@ void setup() {
   FastLED.addLeds<WS2812B, 8, GRB>(leds[5], NUM_LEDS_PER_STRIP);
 }
 
-void loop() {
+void loop()
+{
   // Check if MQTT client is connected
-  if (!mqtt.connected()) {
+  if (!mqtt.connected())
+  {
     // If not connected, attempt to reconnect
     reconnect();
   }
-  
+
   // Check for MQTT messages and handle callbacks
   mqtt.loop();
 }
