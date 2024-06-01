@@ -210,8 +210,6 @@ def on_message(client, userdata, msg):
             print(f"SLAP received from wristband 2")
             custom_event = pygame.event.Event(SLAP_2)
             pygame.event.post(custom_event)
-            print(f"Unhandled message: {
-                  message_content} from wristband {wristband_id}")
 
 def draw_button(screen, msg, x, y, w, h, ic, ac):
     mouse = pygame.mouse.get_pos()
