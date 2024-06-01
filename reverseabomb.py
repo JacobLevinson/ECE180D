@@ -150,7 +150,7 @@ class LEDState:
             
             #This creates a 2 dimmensional list of the led arrays and the pixels for each array
             #this initially sets the values to "b" for black meaning that they are all turned off
-            cls._instance.ledArrays = [["b" for _ in range(LED_STRIP_LENGTH)] for _ in range(LED_STRIP_COUNT)]
+            cls._instance.ledArrays = [["o" for _ in range(LED_STRIP_LENGTH)] for _ in range(LED_STRIP_COUNT)]
         return cls._instance
 
     def send_LED_state(self, client, gameState):
