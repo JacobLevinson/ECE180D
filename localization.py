@@ -85,10 +85,10 @@ def detect_colors(frame):
         red_dot_pos_green = center_green
 
     # If red dot positions are found, print their coordinates
-    if red_dot_pos_pink:
-        print("Pink Dot Position (x, y):", red_dot_pos_pink)
-    if red_dot_pos_green:
-        print("Green Dot Position (x, y):", red_dot_pos_green)
+    # if red_dot_pos_pink:
+    #     print("Pink Dot Position (x, y):", red_dot_pos_pink)
+    # if red_dot_pos_green:
+    #     print("Green Dot Position (x, y):", red_dot_pos_green)
 
     return center_green, center_pink, frame
 

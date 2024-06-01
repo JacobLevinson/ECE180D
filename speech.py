@@ -49,7 +49,7 @@ def speech_recognition_function(event_queue):
         with chosen_microphone as source:
             # This line calibrates the noise level by listening for half a second to capture ambient noise.
             audio = recognizer.listen(source)  # capturing the person's audio
-            print("Got it! Now to recognize it...")
+            #print("Got it! Now to recognize it...")
 
             try:
                 # This line performs speech recognition using Google Speech Recognition. It sends the captured audio data to Google's servers for processing and attempts to recognize the speech.
@@ -60,7 +60,7 @@ def speech_recognition_function(event_queue):
                 if audio and 'alternative' in audio:
                     # This line extracts the recognized text from the recognition result. It accesses the first alternative interpretation (index 0) and converts the text to uppercase using the upper() method.
                     speech_text = audio['alternative'][0]['transcript'].upper()
-                    print(f"You said: {speech_text}")
+                    #print(f"You said: {speech_text}")
 
                     if any(word in speech_text for word in freeze_words):
                         # print("Freeze is recognized!")
