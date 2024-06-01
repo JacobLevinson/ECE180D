@@ -3,8 +3,8 @@
 #include <FastLED.h>
 
 // Define WiFi credentials
-const char* ssid = "ATTTMBDHWa";
-const char* password = "fx7eyh+gdjnn";
+const char* ssid = "William";
+const char* password = "12345678";
 
 // Define MQTT parameters
 const char mqtt_server[] = "mqtt.eclipseprojects.io";
