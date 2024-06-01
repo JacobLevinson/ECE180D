@@ -15,7 +15,8 @@ import random
 import speech_recognition as sr
 import time
 import multiprocessing
-
+from localization import *
+from speech import *
 # Import the pygame module
 import pygame
 import cv2
@@ -58,84 +59,6 @@ def clear_queue(queue):
         except multiprocessing.queues.Empty:
             # If the queue is empty, break the loop
             break
-
-def speech_recognition_function(event_queue):
-    freeze_words = ["FREEZE", "BREEZE", "ARIES", "FRIES", "JEWELRIES", "PLEASE", "REESE", "TREES", "THREE",
-                     "PRAISE", "PRICE", "BRIEF", "FREE", "RACE","FRIENDS", "MONSTER HIGH", "FREE", "MOVIES", "FREEZER", "SPRINGS", "IS", "WALGREENS",
-                      "PLEASE", "GREEN", "SPRINGS", "FACE", "CHRISTMAS MUSIC", "FRESH"]
-    start_words = ["START","STARKS","STARDUST", "APRIL 1ST", "CHART","STAR"]
-    stop_words = ["STOP", "STAP", "713"]
-    reverse_words = ["REVERSE", "BROTHERS", "RIVERS", "REVEREND", "PROVERBS", "WEATHER", "REVERSED"]
-    slow_words = ["SLOW", "LOW", "HELLO", "CLOSE", "SONGS", "SO", "SOLO", "BLOW", "POST MALONE", "SLOWED"]
-    #die_words = ["DIE", "BYE", "DIVE"]
-
-    recognizer = sr.Recognizer()
-    recognizer.dynamic_energy_threshold = True
-    recognizer.energy_threshold = 300
-    recognizer.pause_threshold = 0.5
-
-    # Function to find the index of a microphone by its name
-    def find_microphone_index(name):
-        for index, mic_name in enumerate(sr.Microphone.list_microphone_names()):
-            if name in mic_name:
-                return index
-        return None
-
-
-    time.sleep(1)
-    with sr.Microphone() as source:
-        recognizer.adjust_for_ambient_noise(source, duration=0.5)
-    while True:
-        # Name of the microphone you want to use
-        microphone_name = "Microphone (USBAudio1.0)"
-
-        # Find the index of the microphone by its name
-        microphone_index = find_microphone_index(microphone_name)
-
-        # Check if the microphone index is found
-        if microphone_index is not None:
-            # Initialize the chosen microphone by index
-            chosen_microphone = sr.Microphone(device_index=microphone_index)
-            print(f"Using microphone '{microphone_name}' (index: {microphone_index})")
-        else:
-            print(f"Microphone '{microphone_name}' not found.")
-
-        with chosen_microphone as source:
-            try:
-                audio = recognizer.listen(source)
-                #print("Got it! Now to recognize it...")
-
-                audio = recognizer.recognize_google(audio, show_all=True)
-
-                if audio and 'alternative' in audio:
-                    speech_text = audio['alternative'][0]['transcript'].upper()
-                    #print(f"You said: {speech_text}")
-
-                    if any(word in speech_text for word in freeze_words):
-                        #print("Freeze is recognized!")
-                        event_queue.put({'command': 'FREEZE'})
-                    if any(word in speech_text for word in start_words):
-                        #print("Start is recognized!")
-                        event_queue.put({'command': 'START'})
-                    if any(word in speech_text for word in reverse_words):
-                        #print("Reverse is recognized!")
-                        event_queue.put({'command': 'REVERSE'})
-                    # if any(word in speech_text for word in die_words):
-                        #print("Die is recognized!")
-                        #event_queue.put({'command': 'DIE'})
-                    if any(word in speech_text for word in slow_words):
-                        #print("Slow is recognized!")
-                        event_queue.put({'command': 'STOP'})
-                    if any(word in speech_text for word in stop_words):
-                        #print("Stop is recognized!")
-                        event_queue.put({'command': 'STOP'})
-
-            except sr.UnknownValueError:
-                #print("Google Web Speech API could not understand audio")
-                pass
-            except sr.RequestError as e:
-                print(
-                    f"Could not request results from Google Web Speech API; {e}")
 
 
 # GameState class handles the gameplay *********************************************************
@@ -181,7 +104,7 @@ class GameState:
             print(f"Invalid reverse bomb request from player {
                   player_id} for bomb {bomb_id}")
 
-    def updatePoisitions(self, ledState):
+    def updatePositions(self, ledState):
         
         ##note to jacob, for this code you need to be able to save the previous state so that after the 
         #powerup has worn off you can set it back to the old state, otherwise the old position is lost
@@ -261,13 +184,6 @@ def on_message(client, userdata, msg):
             print(f"SLAP received from wristband 2")
             custom_event = pygame.event.Event(SLAP_2)
             pygame.event.post(custom_event)
-        case "JUMP":
-            print(f"JUMP action requested by wristband {wristband_id}")
-            # Additional code for JUMP action can go here
-        case "RUN":
-            print(f"RUN action detected from wristband {wristband_id}")
-            # Additional code for RUN action can go here
-        case _:
             print(f"Unhandled message: {
                   message_content} from wristband {wristband_id}")
 
@@ -284,37 +200,6 @@ def draw_button(screen, msg, x, y, w, h, ic, ac):
     textRect.center = ((x + (w // 2)), (y + (h // 2)))
     screen.blit(textSurf, textRect)
 
-
-def find_positions(queue):
-    # Change the index to your camera's index if needed
-    cap = cv2.VideoCapture(0)
-
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            continue
-
-        # Your logic to find the positions of two items
-        # Here I'm just using dummy values for demonstration
-        xpos_1, ypos_1 = 100, 100  # Replace with actual detection logic
-        xpos_2, ypos_2 = 200, 200  # Replace with actual detection logic
-
-        # Try to put the positions in the queue without blocking
-        try:
-            if queue.full():
-                queue.get_nowait()  # Remove the oldest item if the queue is full
-            queue.put_nowait((xpos_1, ypos_1, xpos_2, ypos_2))
-        except Exception as e:
-            print(f"Queue operation failed: {e}")
-
-        # Display the frame (for debugging purposes)
-        cv2.imshow('Frame', frame)
-
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
-    cap.release()
-    cv2.destroyAllWindows()
 
 
 
@@ -373,8 +258,6 @@ def main():
     # Code to allow user to click on pgame button to start or start the game via voice
 
 
-
-
     # Setup the display
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -423,7 +306,7 @@ def main():
 
 
 
-
+    ###############################################################
 
     # Our main game loop
     while running:
@@ -443,7 +326,10 @@ def main():
         # Drain the queue to get the most recent position data
         while not position_queue.empty():
             xpos_1, ypos_1, xpos_2, ypos_2 = position_queue.get()
-
+        #process the positions to get lanes
+        PLAYER1_ROW = map_coord_to_lane(ypos_1)
+        PLAYER2_ROW = map_coord_to_lane(ypos_2)
+        
         # Look at every event in the queue
         for event in pygame.event.get():
             # Did the user hit a key?
@@ -459,11 +345,11 @@ def main():
             elif event.type == SLAP_1:
                 print("SLAP 1 detected")
                 slap_sound.play()
-                gameState.reverse_bomb(1, 0)
+                gameState.reverse_bomb(1, PLAYER1_ROW)
             elif event.type == SLAP_2:
                 print("SLAP 2 detected")
                 slap_sound.play()
-                gameState.reverse_bomb(2, 0)
+                gameState.reverse_bomb(2, PLAYER2_ROW)
             elif event.type == VOICE_EVENT:
                 # Handle voice command events
                 if event.command == "FREEZE":
@@ -491,7 +377,7 @@ def main():
                     break
 
         # Monitor if bombs explode
-        gameState.updatePoisitions(ledState) #updates positions and then the ledstate
+        gameState.updatePositions(ledState) #updates positions and then the ledstate
 
         # Send LED state to the LED strips
         ledState.send_LED_state(
@@ -523,6 +409,8 @@ def main():
     # Cleanup processes
     speech_process.terminate()
     speech_process.join()
+    position_process.terminate()
+    position_process.join()
 
 
 if __name__ == "__main__":
