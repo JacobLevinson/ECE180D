@@ -55,6 +55,8 @@ void reconnect()
     {
       Serial.println("Connected to MQTT broker");
       mqtt.subscribe(subscribeTopic);
+      Serial.println("Subscribed to topic: ");
+      Serial.println(subscribeTopic);
     }
     else
     {
