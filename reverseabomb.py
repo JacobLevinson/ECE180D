@@ -111,7 +111,7 @@ class GameState:
         for i in range(0, LED_STRIP_COUNT):
             if(self.powerup_state == "FREEZE"):
                 # Do not change bomb positions
-                ledState.ledArrays[i] = ["b" for _ in range(LED_STRIP_LENGTH)]
+                ledState.ledArrays[i] = ["o" for _ in range(LED_STRIP_LENGTH)]
             elif(self.powerup_state == "REVERSE"):
                 # Reverse all bomb directions
                 self.bomb_directions[i] = -1 * self.bomb_directions[i]
@@ -168,6 +168,32 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe(wristband1_topic, qos=1)
     client.subscribe(wristband2_topic, qos=1)
 
+
+def letter_to_color(letter):
+    """
+    Maps a single letter to a corresponding color.
+    """
+    color_map = {
+        'r': (255, 0, 0),       # Red
+        'g': (0, 255, 0),       # Green
+        'b': (0, 0, 255),       # Blue
+        'w': (255, 255, 255),   # White
+        'k': (0, 0, 0),         # Black
+        'y': (255, 255, 0),     # Yellow
+        'c': (0, 255, 255),     # Cyan
+        'm': (255, 0, 255),     # Magenta
+        'o': (0, 0, 0),     # Orange
+        'p': (128, 0, 128),     # Purple
+        'a': (0, 128, 128),     # Teal
+        'l': (128, 128, 128)    # Grey
+    }
+
+    # Return the corresponding color or default to black if letter not found
+    return color_map.get(letter.lower(), (0, 0, 0))
+
+
+# Initialize Pygame
+pygame.init()
 
 def on_message(client, userdata, msg):
     # Process incoming message
@@ -386,7 +412,7 @@ def main():
         # DEMO SECTION: Just show LEDs in pygame window
         for i in range(0, LED_STRIP_COUNT):
             for j in range(0, LED_STRIP_LENGTH):
-                pygame.draw.rect(screen, ledState.ledArrays[i][j], [
+                pygame.draw.rect(screen, letter_to_color(ledState.ledArrays[i][j]), [
                                  j*10, i*15, 10, 15])
 
         # Update Powerup Timer

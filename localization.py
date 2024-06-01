@@ -96,7 +96,7 @@ def detect_colors(frame):
 def find_positions(queue):
     # Change the index to your camera's index if needed
     cap = cv2.VideoCapture(1)
-
+    print("Camera is open")
     while True:
         ret, frame = cap.read()
         if not ret:

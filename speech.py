@@ -82,7 +82,8 @@ def speech_recognition_function(event_queue):
                         event_queue.put({'command': 'STOP'})
 
             except sr.UnknownValueError:
-                print("Google Web Speech API could not understand audio")
+                #print("Google Web Speech API could not understand audio")
+                continue
             except sr.RequestError as e:
                 print(
                     f"Could not request results from Google Web Speech API; {e}")
