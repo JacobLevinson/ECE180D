@@ -159,8 +159,8 @@ class LEDState:
         
         # Publish the LED state to the LED controller topic with QoS 0
         client.publish(led_controller_topic, led_state_str, qos=0)
-        print("LED state published to the LED controller topic.")
-        print("LED state string:", led_state_str)  # Print LED state for debugging
+        #print("LED state published to the LED controller topic.")
+        #print("LED state string:", led_state_str)  # Print LED state for debugging
 
 # functions for the client to puslish and subscribe data ************************
 def on_connect(client, userdata, flags, rc):
@@ -338,7 +338,7 @@ def main():
     while running:
         # Reset LED state
         for i in range(0, LED_STRIP_COUNT):
-            ledState.ledArrays[i] = ["b" for _ in range(LED_STRIP_LENGTH)]
+            ledState.ledArrays[i] = ["o" for _ in range(LED_STRIP_LENGTH)]
 
         # Process any speech and add it to events
         # Check for new speech recognition events
