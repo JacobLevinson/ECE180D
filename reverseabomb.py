@@ -111,7 +111,7 @@ class GameState:
         for i in range(0, LED_STRIP_COUNT):
             if(self.powerup_state == "FREEZE"):
                 # Do not change bomb positions
-                ledState.ledArrays[i] = ["o" for _ in range(LED_STRIP_LENGTH)]
+                ledState.ledArrays[i] = ["b" for _ in range(LED_STRIP_LENGTH)]
             elif(self.powerup_state == "REVERSE"):
                 # Reverse all bomb directions
                 self.bomb_directions[i] = -1 * self.bomb_directions[i]
