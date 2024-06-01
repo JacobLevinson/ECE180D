@@ -104,7 +104,7 @@ def find_positions(queue):
 
         # Your logic to find the positions of two items
         # Here I'm just using dummy values for demonstration
-        center_green, center_pink = detect_colors(frame)
+        center_green, center_pink, x = detect_colors(frame)
         xpos_1, ypos_1 = center_green  
         xpos_2, ypos_2 = center_pink
         if(xpos_1 == None):

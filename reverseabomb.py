@@ -381,7 +381,7 @@ def main():
 
         # Send LED state to the LED strips
         ledState.send_LED_state(
-            client, gameState, LED_STRIP_LENGTH, LED_STRIP_COUNT)
+            client, gameState)
 
         # DEMO SECTION: Just show LEDs in pygame window
         for i in range(0, LED_STRIP_COUNT):

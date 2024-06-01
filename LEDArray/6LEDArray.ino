@@ -100,7 +100,7 @@ void callback(char *topic, byte *payload, unsigned int length)
         {
           leds[strip][led] = CRGB::Blue;
         }
-        else if (payload(index == 'o'))
+        else if (payload[index] == 'o')
         {
           leds[strip][led] = CRGB::Black;
         }

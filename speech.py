@@ -19,7 +19,7 @@ def speech_recognition_function(event_queue):
     stop_words = ["STOP", "STAP", "713"]  # this works pretty good
     reverse_words = ["REVERSE", "BROTHERS", "RIVERS",
                      "REVEREND", "PROVERBS", "WEATHER", "REVERSED"]
-    slow_words = ["SLOW", "LOW", "HELLO", "CLOSE", "SONGS",
+    slow_words = ["SLOW", "LOW", "CLOSE", "SONGS",
                   "SO", "SOLO", "BLOW", "POST MALONE", "SLOWED"]
     # die_words = ["DIE", "BYE", "DIVE"]
     microphone_name = "Microphone (USBAudio1.0)"
