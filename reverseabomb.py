@@ -22,7 +22,8 @@ import pygame
 import cv2
 # Import random for random numbers
 import random
-
+import os
+import psutil
 # Define mqtt server and topics
 mqtt_server = 'mqtt.eclipseprojects.io'
 led_controller_topic = 'ece180d/team3/reverseabomb/ledcontroller'
@@ -233,6 +234,8 @@ def draw_button(screen, msg, x, y, w, h, ic, ac):
 
 
 def main():
+    p = psutil.Process(os.getpid())
+    p.nice(psutil.HIGH_PRIORITY_CLASS)
     client = mqtt.Client()
     client.on_connect = on_connect
     client.on_message = on_message
