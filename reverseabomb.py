@@ -134,7 +134,7 @@ class GameState:
                         self.player1_score += 1
                     else:
                         self.player2_score += 1
-                    #print(f"Bomb {i} exploded!")
+                    # print(f"Bomb {i} exploded!")
                     # Reset bomb position
                     self.bomb_positions[i] = LED_STRIP_LENGTH/2
                     ledState.ledArrays[i] = [
@@ -417,12 +417,19 @@ def main():
         ledState.send_LED_state(
             client, gameState)
 
-        # DEMO SECTION: Just show LEDs in pygame window
-        for i in range(0, LED_STRIP_COUNT):
-            for j in range(0, LED_STRIP_LENGTH):
-                pygame.draw.rect(screen, letter_to_color(ledState.ledArrays[i][j]), [
-                                 j*10, i*15, 10, 15])
+        # Check if either player's score is 10
+        if (gameState.player1_score >= 10 or gameState.player2_score >= 10):
+            running = False
 
+        # Draw the score for each player on the screen
+        screen.fill((0, 0, 0))  # Clear screen with black
+        font = pygame.font.SysFont(None, 55)
+        player1_score_text = font.render(
+            f"Player 1 Lives: {10 - gameState.player1_score}", True, (255, 255, 255))
+        player2_score_text = font.render(
+            f"Player 2 Lives: {10 - gameState.player2_score}", True, (255, 255, 255))
+        screen.blit(player1_score_text, (50, 50))
+        screen.blit(player2_score_text, (50, 150))
         # Update Powerup Timer
         if (gameState.powerup_state != "NONE"):
             gameState.powerup_timer -= 1
@@ -434,7 +441,20 @@ def main():
         # Ensure we maintain FPS rate
         clock.tick(FPS)
 
+    # Display who won the game
+    winner = "Player 1" if gameState.player1_score < gameState.player2_score else "Player 2"
+    screen.fill((0, 0, 0))  # Clear screen with black
+    font = pygame.font.SysFont(None, 75)
+    winner_text = font.render(f"{winner} Wins!", True, (255, 255, 255))
+    text_rect = winner_text.get_rect(
+        center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2))
+    screen.blit(winner_text, text_rect)
+    pygame.display.flip()
+
+    # wait 6 seconds before closing
+    pygame.time.wait(6000)
     # At this point, we're done, so we can stop and quit the mixer
+
     pygame.mixer.music.stop()
     pygame.mixer.quit()
 
