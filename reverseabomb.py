@@ -9,7 +9,7 @@ from pygame.locals import (
     QUIT,
 )
 import paho.mqtt.client as mqtt
-import json 
+import json
 import math
 import random
 import speech_recognition as sr
@@ -23,7 +23,7 @@ import cv2
 # Import random for random numbers
 import random
 
-# Define mqtt server and topics 
+# Define mqtt server and topics
 mqtt_server = 'mqtt.eclipseprojects.io'
 led_controller_topic = 'ece180d/team3/reverseabomb/ledcontroller'
 wristband1_topic = "ece180d/team3/reverseabomb/wristband1"
@@ -51,6 +51,8 @@ VOICE_EVENT = pygame.USEREVENT + 3
 FPS = 10
 
 # Function to clear the queue
+
+
 def clear_queue(queue):
     while True:
         try:
@@ -105,21 +107,20 @@ class GameState:
                   player_id} for bomb {bomb_id}")
 
     def updatePositions(self, ledState):
-        
-        ##note to jacob, for this code you need to be able to save the previous state so that after the 
-        #powerup has worn off you can set it back to the old state, otherwise the old position is lost
+
+        # note to jacob, for this code you need to be able to save the previous state so that after the
+        # powerup has worn off you can set it back to the old state, otherwise the old position is lost
         for i in range(0, LED_STRIP_COUNT):
-            if(self.powerup_state == "FREEZE"):
+            if (self.powerup_state == "FREEZE"):
                 # Do not change bomb positions
                 ledState.ledArrays[i] = ["b" for _ in range(LED_STRIP_LENGTH)]
-            elif(self.powerup_state == "REVERSE"):
+            elif (self.powerup_state == "REVERSE"):
                 # Reverse all bomb directions
                 self.bomb_directions[i] = -1 * self.bomb_directions[i]
-                self.powerup_state = "NONE" 
-            #elif(self.powerup_state == "SLOW"):
+                self.powerup_state = "NONE"
+            # elif(self.powerup_state == "SLOW"):
                 # Slow down bombs coming towards you
 
-                
             else:
                 # Move bombs towards players
                 self.bomb_positions[i] = self.bomb_positions[i] + \
@@ -135,7 +136,8 @@ class GameState:
                     print(f"Bomb {i} exploded!")
                     # Reset bomb position
                     self.bomb_positions[i] = LED_STRIP_LENGTH/2
-                    ledState.ledArrays[i] = ["r" for _ in range(LED_STRIP_LENGTH)]
+                    ledState.ledArrays[i] = [
+                        "r" for _ in range(LED_STRIP_LENGTH)]
             # Always set the bomb position to red
             ledState.ledArrays[i][int(self.bomb_positions[i])] = "r"
 
@@ -147,22 +149,25 @@ class LEDState:
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
             cls._instance = super(LEDState, cls).__new__(cls, *args, **kwargs)
-            
-            #This creates a 2 dimmensional list of the led arrays and the pixels for each array
-            #this initially sets the values to "b" for black meaning that they are all turned off
-            cls._instance.ledArrays = [["o" for _ in range(LED_STRIP_LENGTH)] for _ in range(LED_STRIP_COUNT)]
+
+            # This creates a 2 dimmensional list of the led arrays and the pixels for each array
+            # this initially sets the values to "b" for black meaning that they are all turned off
+            cls._instance.ledArrays = [
+                ["o" for _ in range(LED_STRIP_LENGTH)] for _ in range(LED_STRIP_COUNT)]
         return cls._instance
 
     def send_LED_state(self, client, gameState):
         # Flatten the 2D LED state list into a single string, bassically appending each row to each other
         led_state_str = ''.join([''.join(strip) for strip in self.ledArrays])
-        
+
         # Publish the LED state to the LED controller topic with QoS 0
         client.publish(led_controller_topic, led_state_str, qos=0)
-        #print("LED state published to the LED controller topic.")
-        #print("LED state string:", led_state_str)  # Print LED state for debugging
+        # print("LED state published to the LED controller topic.")
+        # print("LED state string:", led_state_str)  # Print LED state for debugging
 
 # functions for the client to puslish and subscribe data ************************
+
+
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
     client.subscribe(wristband1_topic, qos=1)
@@ -195,6 +200,7 @@ def letter_to_color(letter):
 # Initialize Pygame
 pygame.init()
 
+
 def on_message(client, userdata, msg):
     # Process incoming message
     topic = msg.topic
@@ -211,6 +217,7 @@ def on_message(client, userdata, msg):
             custom_event = pygame.event.Event(SLAP_2)
             pygame.event.post(custom_event)
 
+
 def draw_button(screen, msg, x, y, w, h, ic, ac):
     mouse = pygame.mouse.get_pos()
     if x+w > mouse[0] > x and y+h > mouse[1] > y:
@@ -223,8 +230,6 @@ def draw_button(screen, msg, x, y, w, h, ic, ac):
     textRect = textSurf.get_rect()
     textRect.center = ((x + (w // 2)), (y + (h // 2)))
     screen.blit(textSurf, textRect)
-
-
 
 
 def main():
@@ -268,19 +273,18 @@ def main():
     speech_process = multiprocessing.Process(
         target=speech_recognition_function, args=(event_queue,))
     speech_process.start()
-    #position queue
+    # position queue
     position_queue = multiprocessing.Queue(maxsize=10)
-    position_process = multiprocessing.Process(target=find_positions, args=(position_queue,))
+    position_process = multiprocessing.Process(
+        target=find_positions, args=(position_queue,))
     position_process.start()
     xpos_1, ypos_1, xpos_2, ypos_2 = 0, 0, 0, 0
     # Variable to keep our main loop running
     running = False
 
-
-    ## Start the Game
+    # Start the Game
 
     # Code to allow user to click on pgame button to start or start the game via voice
-
 
     # Setup the display
     pygame.init()
@@ -296,8 +300,11 @@ def main():
 
         # Text above the button
         font = pygame.font.SysFont('comicsansms', 28)  # Choose a font and size
-        text_surface = font.render('Say or press "Start Game"', True, (0, 0, 0))  # Create a text surface
-        text_rect = text_surface.get_rect(center=(SCREEN_WIDTH / 2, 260))  # Position it above the button
+        text_surface = font.render(
+            # Create a text surface
+            'Say or press "Start Game"', True, (0, 0, 0))
+        text_rect = text_surface.get_rect(
+            center=(SCREEN_WIDTH / 2, 260))  # Position it above the button
         screen.blit(text_surface, text_rect)  # Draw the text on the screen
         draw_button(screen, 'Start Game', 360, 310,
                     240, 100, (0, 200, 0), (0, 255, 0))
@@ -324,11 +331,10 @@ def main():
                     running = True
 
     # Clear the screen with black or any other base color after starting the game
-    screen.fill((0, 0, 0))  # Change the RGB value to your desired background color
+    # Change the RGB value to your desired background color
+    screen.fill((0, 0, 0))
     pygame.display.flip()
     pygame.display.set_caption('Reverse-A-Bomb')
-
-
 
     ###############################################################
 
@@ -342,7 +348,7 @@ def main():
         # Check for new speech recognition events
         while not event_queue.empty():
             message = event_queue.get()
-            #print(f"Received q message: {message}")
+            # print(f"Received q message: {message}")
             if message['command'] in ['FREEZE', 'START', 'REVERSE', 'SLOW', 'STOP']:
                 pygame.event.post(pygame.event.Event(
                     VOICE_EVENT, command=message['command']))
@@ -350,10 +356,10 @@ def main():
         # Drain the queue to get the most recent position data
         while not position_queue.empty():
             xpos_1, ypos_1, xpos_2, ypos_2 = position_queue.get()
-        #process the positions to get lanes
+        # process the positions to get lanes
         PLAYER1_ROW = map_coord_to_lane(ypos_1)
-        PLAYER2_ROW = map_coord_to_lane(ypos_2)
-        
+        PLAYER2_ROW = map_coord_to_lane(ypos_2 - 6)
+
         # Look at every event in the queue
         for event in pygame.event.get():
             # Did the user hit a key?
@@ -379,7 +385,7 @@ def main():
                 if event.command == "FREEZE":
                     # Handle freeze command
                     print("FREEZE EVENT DETECTED")
-                    if(gameState.powerup_state == "NONE"):
+                    if (gameState.powerup_state == "NONE"):
                         gameState.powerup_state = "FREEZE"
                         gameState.powerup_timer = FPS * 3
                 elif event.command == "START":
@@ -388,7 +394,7 @@ def main():
                 elif event.command == "REVERSE":
                     # Handle reverse command
                     print("REVERSE EVENT DETECTED")
-                    if(gameState.powerup_state == "NONE"):
+                    if (gameState.powerup_state == "NONE"):
                         gameState.powerup_state = "REVERSE"
                         gameState.powerup_timer = 1
                 elif event.command == "SLOW":
@@ -401,7 +407,8 @@ def main():
                     break
 
         # Monitor if bombs explode
-        gameState.updatePositions(ledState) #updates positions and then the ledstate
+        # updates positions and then the ledstate
+        gameState.updatePositions(ledState)
 
         # Send LED state to the LED strips
         ledState.send_LED_state(
@@ -414,13 +421,11 @@ def main():
                                  j*10, i*15, 10, 15])
 
         # Update Powerup Timer
-        if(gameState.powerup_state != "NONE"):
+        if (gameState.powerup_state != "NONE"):
             gameState.powerup_timer -= 1
-            if(gameState.powerup_timer <= 0):
-                gameState.powerup_state = "NONE"    
+            if (gameState.powerup_timer <= 0):
+                gameState.powerup_state = "NONE"
 
-
-        
         # Display Screen
         pygame.display.flip()
         # Ensure we maintain FPS rate
