@@ -429,6 +429,7 @@ def main():
         player2_score_text = font.render(
             f"Player 2 Lives: {10 - gameState.player2_score}", True, (255, 255, 255))
         screen.blit(player1_score_text, (50, 50))
+        screen.blit(player2_score_text, (50, 150))
         # Adjusted position for larger text
         # Update Powerup Timer
         if (gameState.powerup_state != "NONE"):
@@ -444,15 +445,15 @@ def main():
     # Display who won the game
     winner = "Player 1" if gameState.player1_score < gameState.player2_score else "Player 2"
     screen.fill((0, 0, 0))  # Clear screen with black
-    font = pygame.font.SysFont(None, 150)  # Increased font size
+    font = pygame.font.SysFont(None, 75)
     winner_text = font.render(f"{winner} Wins!", True, (255, 255, 255))
     text_rect = winner_text.get_rect(
         center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2))
     screen.blit(winner_text, text_rect)
     pygame.display.flip()
 
-    # Wait for a 6 seconds to display the winner
-    pygame.time.wait(6000)  # Wait for 3 seconds
+    # wait 6 seconds before closing
+    pygame.time.wait(6000)
     # At this point, we're done, so we can stop and quit the mixer
 
     pygame.mixer.music.stop()
