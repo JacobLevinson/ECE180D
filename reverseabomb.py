@@ -133,7 +133,7 @@ class GameState:
                         self.player1_score += 1
                     else:
                         self.player2_score += 1
-                    print(f"Bomb {i} exploded!")
+                    #print(f"Bomb {i} exploded!")
                     # Reset bomb position
                     self.bomb_positions[i] = LED_STRIP_LENGTH/2
                     ledState.ledArrays[i] = [

@@ -1,6 +1,7 @@
 import speech_recognition as sr
 import time
-
+import os
+import psutil
 
 def find_microphone_index(name):
     for index, mic_name in enumerate(sr.Microphone.list_microphone_names()):
@@ -10,6 +11,8 @@ def find_microphone_index(name):
 
 
 def speech_recognition_function(event_queue):
+    p = psutil.Process(os.getpid())
+    p.nice(psutil.HIGH_PRIORITY_CLASS)
     # Better to say the power up key words more than once
     freeze_words = ["FREEZE", "BREEZE", "ARIES", "FRIES", "JEWELRIES", "PLEASE", "REESE", "TREES", "THREE",
                     "PRAISE", "PRICE", "BRIEF", "FREE", "RACE", "FRIENDS", "MONSTER HIGH", "FREE", "MOVIES", "FREEZER", "SPRINGS", "IS", "WALGREENS",
@@ -49,7 +52,7 @@ def speech_recognition_function(event_queue):
         with chosen_microphone as source:
             # This line calibrates the noise level by listening for half a second to capture ambient noise.
             audio = recognizer.listen(source)  # capturing the person's audio
-            #print("Got it! Now to recognize it...")
+            print("Got it! Now to recognize it...")
 
             try:
                 # This line performs speech recognition using Google Speech Recognition. It sends the captured audio data to Google's servers for processing and attempts to recognize the speech.
@@ -60,7 +63,7 @@ def speech_recognition_function(event_queue):
                 if audio and 'alternative' in audio:
                     # This line extracts the recognized text from the recognition result. It accesses the first alternative interpretation (index 0) and converts the text to uppercase using the upper() method.
                     speech_text = audio['alternative'][0]['transcript'].upper()
-                    #print(f"You said: {speech_text}")
+                    print(f"You said: {speech_text}")
 
                     if any(word in speech_text for word in freeze_words):
                         # print("Freeze is recognized!")
@@ -82,7 +85,7 @@ def speech_recognition_function(event_queue):
                         event_queue.put({'command': 'STOP'})
 
             except sr.UnknownValueError:
-                #print("Google Web Speech API could not understand audio")
+                print("Google Web Speech API could not understand audio")
                 continue
             except sr.RequestError as e:
                 print(
