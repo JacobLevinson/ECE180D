@@ -42,7 +42,7 @@ def speech_recognition_function(event_queue):
     recognizer = sr.Recognizer()
     recognizer.dynamic_energy_threshold = True  # Enable dynamic energy threshold
     recognizer.energy_threshold = 300  # Adjust this value as needed
-    recognizer.pause_threshold = 0.5  # Adjust this value as needed
+    recognizer.pause_threshold = 0.2  # Adjust this value as needed
     with chosen_microphone as source:
         # This line calibrates the noise level by listening for half a second to capture ambient noise.
         recognizer.adjust_for_ambient_noise(source, duration=0.5)
@@ -51,7 +51,8 @@ def speech_recognition_function(event_queue):
         # Name of the microphone you want to use
         with chosen_microphone as source:
             # This line calibrates the noise level by listening for half a second to capture ambient noise.
-            audio = recognizer.listen(source)  # capturing the person's audio
+            # capturing the person's audio
+            audio = recognizer.listen(source, phrase_time_limit=3)
             print("Got it! Now to recognize it...")
 
             try:
