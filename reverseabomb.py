@@ -49,7 +49,7 @@ SLAP_1 = pygame.USEREVENT + 1
 SLAP_2 = pygame.USEREVENT + 2
 VOICE_EVENT = pygame.USEREVENT + 3
 
-FPS = 10
+FPS = 7
 
 # Function to clear the queue
 
