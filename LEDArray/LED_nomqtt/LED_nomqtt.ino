@@ -2,7 +2,7 @@
 
 // Define the number of LED strips and the number of LEDs per strip
 #define NUM_STRIPS 6
-#define NUM_LEDS_PER_STRIP 11
+#define NUM_LEDS_PER_STRIP 90
 
 // Define the data pins for each LED strip
 const int DATA_PINS[NUM_STRIPS] = {3, 4, 5, 6, 7, 8};
@@ -75,3 +75,4 @@ void loop()
         processSerialData(payload, length);
     }
 }
+
